@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Chat</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+
+        #messages {
+            background: #000;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Firebase Chat</h2>
+    <input id="msg" placeholder="Type a message...">
+    <button id="sendBtn">Send</button>
+    <div id="messages"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwSqm65CoNwPc3PiVo1T40YJM2MAcg480",
+            authDomain: "server-1-9fa4f.firebaseapp.com",
+            databaseURL: "https://server-1-9fa4f-default-rtdb.firebaseio.com",
+            projectId: "server-1-9fa4f",
+            storageBucket: "server-1-9fa4f.firebasestorage.app",
+            messagingSenderId: "1019529146427",
+            appId: "1:1019529146427:web:e22f6bbe1623b528f6ec1e"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        let db = firebase.database();
+        let room = "chat-room-1";
+        let messages = document.getElementById("messages");
+        let msgInput = document.getElementById("msg");
+        let sendBtn = document.getElementById("sendBtn");
+
+        // Send message
+        sendBtn.onclick = () => {
+            let text = msgInput.value.trim();
+            if (!text) return;
+            db.ref(room).push({ text, time: Date.now() });
+            msgInput.value = "";
+        };
+
+        // Listen for messages
+        db.ref(room).on("child_added", snap => {
+            let data = snap.val();
+            if (data && data.text) {
+                messages.innerHTML += `<div>${data.text}</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
