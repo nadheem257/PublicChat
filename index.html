@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cool WhatsApp-Style Chat</title>
+<title>Ultimate WhatsApp-Style Chat</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.css"/>
 <style>
 body {margin:0;font-family:'Roboto',sans-serif;background:#ece5dd;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden;}
-#chatApp {display:none;width:95%;max-width:1200px;height:85%;background:#fff;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.2);overflow:hidden;}
+#chatApp {display:none;width:95%;max-width:1400px;height:90%;background:#fff;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.2);overflow:hidden; display:flex;}
 
 /* Home Page */
 #homePage {position:absolute;top:0;left:0;width:100%;height:100%;background:#075e54;display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;}
-#homePage input, #homePage button {padding:12px; font-size:18px; border-radius:25px; border:none; margin-bottom:10px; width:250px;}
+#homePage input, #homePage button {padding:12px; font-size:18px; border-radius:25px; border:none; margin-bottom:10px; width:300px;}
 #homePage button {background:#128c7e; color:white; cursor:pointer;}
 #homePage button:hover {background:#0af;}
 
@@ -41,7 +41,7 @@ img.chat-image {max-width:200px;border-radius:15px;margin-top:5px; cursor:pointe
 
 <!-- Home Page -->
 <div id="homePage">
-    <h1>Welcome to Cool Chat!</h1>
+    <h1>Welcome to Ultimate Chat!</h1>
     <input type="text" id="nameInputHome" placeholder="Enter your name...">
     <button id="enterChatBtn">Enter Chat</button>
 </div>
@@ -86,6 +86,7 @@ img.chat-image {max-width:200px;border-radius:15px;margin-top:5px; cursor:pointe
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
+    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCwSqm65CoNwPc3PiVo1T40YJM2MAcg480",
       authDomain: "server-1-9fa4f.firebaseapp.com",
@@ -96,15 +97,18 @@ document.addEventListener("DOMContentLoaded", function(){
       appId: "1:1019529146427:web:e22f6bbe1623b528f6ec1e"
     };
     firebase.initializeApp(firebaseConfig);
-
     let db = firebase.database();
+
+    // Variables
     let userId = "user-"+Math.floor(Math.random()*100000);
     let userName = "";
     let currentRoom = "room1";
     let tempMessages = [];
     let selecting = false;
     let selectedMessages = new Set();
+    let groups = ["room1"];
 
+    // DOM
     let homePage = document.getElementById("homePage");
     let enterChatBtn = document.getElementById("enterChatBtn");
     let nameInputHome = document.getElementById("nameInputHome");
@@ -140,12 +144,54 @@ document.addEventListener("DOMContentLoaded", function(){
     function renderTempMessages(){ chatMessages.innerHTML=""; tempMessages.forEach((m,idx)=>{let cls=(m.user===userId)?"bubble-you":"bubble-friend"; addMessage((m.user===userId?"You":m.name)+": "+m.text,cls,idx,m.isImage); }); }
 
     function sendMessage(text,isImage=false){ 
-        if(!text)return; 
+        if(!text) return; 
         if(currentRoom==="room1"){ tempMessages.push({text,user:userId,name:userName,isImage}); renderTempMessages(); } 
         else { let msgRef=db.ref(currentRoom).push(); msgRef.set({text,user:userId,name:userName,time:Date.now(),isImage}); } 
         $("#msgInput").data("emojioneArea").setText('');
     }
 
+    function updateRooms(){
+        roomsDiv.innerHTML="";
+        groups.forEach(g=>{
+            let btn=document.createElement("button");
+            btn.className="room";
+            if(g===currentRoom) btn.classList.add("active");
+            btn.innerText=g;
+            btn.dataset.room=g;
+            btn.addEventListener("click", ()=>{currentRoom=g; chatTitle.innerText=g; Array.from(document.querySelectorAll(".room")).forEach(b=>b.classList.remove("active")); btn.classList.add("active"); loadMessages();});
+            roomsDiv.appendChild(btn);
+        });
+    }
+
+    function loadMessages(){
+        chatMessages.innerHTML="";
+        if(currentRoom==="room1"){ renderTempMessages(); }
+        else {
+            db.ref(currentRoom).once("value",snap=>{
+                snap.forEach(child=>{
+                    let m=child.val();
+                    let cls=(m.user===userId)?"bubble-you":"bubble-friend";
+                    addMessage(m.name+": "+m.text,cls,child.key,m.isImage);
+                });
+            });
+        }
+    }
+
+    function listenMessages(){
+        groups.forEach(room=>{
+            if(room!=="room1"){
+                db.ref(room).on("child_added",snap=>{
+                    if(currentRoom===room){
+                        let m=snap.val();
+                        let cls=(m.user===userId)?"bubble-you":"bubble-friend";
+                        addMessage(m.name+": "+m.text,cls,snap.key,m.isImage);
+                    }
+                });
+            }
+        });
+    }
+
+    // Events
     enterChatBtn.addEventListener("click", ()=>{
         let name = nameInputHome.value.trim(); 
         if(!name){ alert("Enter name"); return; }
@@ -159,8 +205,42 @@ document.addEventListener("DOMContentLoaded", function(){
     sendBtn.addEventListener("click", ()=> sendMessage($("#msgInput").data("emojioneArea").getText()));
     msgInput.addEventListener("keypress", e=>{ if(e.key==="Enter") sendMessage($("#msgInput").data("emojioneArea").getText()); });
 
+    createGroupBtn.addEventListener("click", ()=>{
+        let name=prompt("Group name:"); if(!name)return;
+        groups.push(name); db.ref(name); updateRooms();
+    });
+
+    deleteAllBtn.addEventListener("click", ()=>{
+        if(currentRoom==="room1"){ tempMessages=[]; renderTempMessages(); }
+        else { db.ref(currentRoom).remove(); chatMessages.innerHTML=""; }
+    });
+
+    selectBtn.addEventListener("click", ()=>{
+        selecting=!selecting;
+        deleteSelectedBtn.style.display=selecting?"inline-block":"none";
+        selectBtn.innerText=selecting?"Cancel Select":"Select";
+        selectedMessages.clear();
+        Array.from(chatMessages.children).forEach(c=>c.classList.remove("selected"));
+    });
+
+    deleteSelectedBtn.addEventListener("click", ()=>{
+        selectedMessages.forEach(id=>{
+            if(currentRoom==="room1"){ tempMessages[id]=null; renderTempMessages(); }
+            else db.ref(currentRoom+"/"+id).remove();
+        });
+        selectedMessages.clear();
+    });
+
+    attachBtn.addEventListener("click", ()=>fileInput.click());
+    fileInput.addEventListener("change", ()=>{
+        let file = fileInput.files[0];
+        if(!file) return;
+        let reader = new FileReader();
+        reader.onload = function(e){ sendMessage(e.target.result,true); };
+        reader.readAsDataURL(file);
+    });
+
 });
 </script>
-
 </body>
 </html>
