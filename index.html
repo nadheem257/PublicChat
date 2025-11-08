@@ -105,7 +105,6 @@ document.addEventListener("DOMContentLoaded", function(){
     let selecting = false;
     let selectedMessages = new Set();
 
-    // DOM
     let homePage = document.getElementById("homePage");
     let enterChatBtn = document.getElementById("enterChatBtn");
     let nameInputHome = document.getElementById("nameInputHome");
@@ -144,10 +143,9 @@ document.addEventListener("DOMContentLoaded", function(){
         if(!text)return; 
         if(currentRoom==="room1"){ tempMessages.push({text,user:userId,name:userName,isImage}); renderTempMessages(); } 
         else { let msgRef=db.ref(currentRoom).push(); msgRef.set({text,user:userId,name:userName,time:Date.now(),isImage}); } 
-        $("#msgInput").val(''); 
+        $("#msgInput").data("emojioneArea").setText('');
     }
 
-    // Fix Enter Chat
     enterChatBtn.addEventListener("click", ()=>{
         let name = nameInputHome.value.trim(); 
         if(!name){ alert("Enter name"); return; }
@@ -163,5 +161,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
 });
 </script>
+
 </body>
 </html>
