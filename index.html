@@ -3,21 +3,31 @@
 <head>
 <title>Firebase Chat</title>
 <style>
-body { font-family: Arial; background:#111; color:white; padding:20px;}
-#msg { width:100%; padding:10px; margin-top:10px; box-sizing:border-box; }
+body { font-family: Arial; background:#111; color:white; padding:20px; }
+#chatContainer { display:none; }
+#loginContainer { display:block; }
+input, button { width:100%; padding:10px; margin-top:10px; box-sizing:border-box; }
 #messages { background:#000; height:300px; overflow-y:scroll; padding:10px; margin-top:10px; }
-button { width:100%; padding:10px; margin-top:10px; cursor:pointer; background:#222; color:white; border:none; }
+button { cursor:pointer; background:#222; color:white; border:none; }
 button:disabled { background:#555; cursor:not-allowed; }
-.message-you { color: #0f0; }
-.message-friend { color: #0af; }
+.message-you { color:#0f0; }
+.message-friend { color:#0af; }
 </style>
 </head>
 <body>
 
-<h2>Firebase Chat</h2>
-<input id="msg" placeholder="Type your message...">
-<button id="sendBtn">Send</button>
-<div id="messages"></div>
+<div id="loginContainer">
+  <h2>Enter Your Name</h2>
+  <input id="nameInput" placeholder="Type your name...">
+  <button id="enterBtn">Enter Chat</button>
+</div>
+
+<div id="chatContainer">
+  <h2>Firebase Chat</h2>
+  <div id="messages"></div>
+  <input id="msg" placeholder="Type your message...">
+  <button id="sendBtn">Send</button>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -36,31 +46,53 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 let db = firebase.database();
-let room = "chat-room-1"; 
+let room = "chat-room-1";
 let messages = document.getElementById("messages");
 let msgInput = document.getElementById("msg");
 let sendBtn = document.getElementById("sendBtn");
 
-// generate a random id for this user
-let myId = 'user-' + Math.floor(Math.random()*100000);
+let loginContainer = document.getElementById("loginContainer");
+let chatContainer = document.getElementById("chatContainer");
+let nameInput = document.getElementById("nameInput");
+let enterBtn = document.getElementById("enterBtn");
+
+let userName = "";
+let userId = "user-" + Math.floor(Math.random()*100000);
+
+// Enter chat
+enterBtn.onclick = () => {
+    let name = nameInput.value.trim();
+    if(!name) return;
+    userName = name;
+    loginContainer.style.display = "none";
+    chatContainer.style.display = "block";
+    addMessage(`Welcome ${userName}!`);
+};
 
 // Send message
 sendBtn.onclick = () => {
     let text = msgInput.value.trim();
     if(!text) return;
-    db.ref(room).push({ text, user: myId, time: Date.now() });
+    db.ref(room).push({ text, user: userId, name: userName, time: Date.now() });
     msgInput.value = "";
 };
+
+// Helper to add messages
+function addMessage(text, cls) {
+    messages.innerHTML += `<div class="${cls}">${text}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+}
 
 // Listen for messages
 db.ref(room).on("child_added", snap => {
     let data = snap.val();
     if(data && data.text){
-        let cls = (data.user === myId) ? 'message-you' : 'message-friend';
-        messages.innerHTML += `<div class="${cls}">${(data.user === myId ? 'You' : 'Friend')}: ${data.text}</div>`;
-        messages.scrollTop = messages.scrollHeight;
+        let cls = (data.user === userId) ? "message-you" : "message-friend";
+        let displayName = (data.user === userId) ? "You" : data.name || "Friend";
+        addMessage(`${displayName}: ${data.text}`, cls);
     }
 });
 </script>
+
 </body>
 </html>
