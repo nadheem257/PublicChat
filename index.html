@@ -9,7 +9,8 @@ body {
     display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;
 }
 section {
-    position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center;
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
     transition: all 0.5s ease; opacity:0; transform: translateY(50px); z-index:0;
 }
 section.active { opacity:1; transform: translateY(0); z-index:10; }
@@ -49,9 +50,10 @@ input { padding:10px; margin-top:10px; font-size:16px; border-radius:5px; border
     </div>
 </section>
 
-<!-- Scripts at the end -->
+<!-- Firebase scripts -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // Firebase config
@@ -123,5 +125,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+
 </body>
 </html>
+
