@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", function() {
     firebase.initializeApp(firebaseConfig);
 
     let db = firebase.database();
-    // room can be static or unique per session
     let room = "chat-room-1";
 
     let homePage = document.getElementById("homePage");
@@ -86,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let userName = "";
     let userId = "user-" + Math.floor(Math.random()*100000);
 
-    // Track session start time to ignore old messages
+    // Session start time
     let startTime = Date.now();
 
     // Page transitions
@@ -118,18 +117,20 @@ document.addEventListener("DOMContentLoaded", function() {
         msgInput.value = "";
     });
 
-    // Listen for messages, ignore old ones
-    db.ref(room).on("child_added", snap => {
-        let data = snap.val();
-        if(data && data.text && data.time >= startTime){
-            let cls = (data.user === userId) ? "message-you" : "message-friend";
-            let displayName = (data.user === userId) ? "You" : data.name || "Friend";
-            addMessage(`${displayName}: ${data.text}`, cls);
-        }
-    });
+    // Listen for messages starting from session start
+    db.ref(room)
+      .orderByChild("time")
+      .startAt(startTime)
+      .on("child_added", snap => {
+          let data = snap.val();
+          if(data && data.text){
+              let cls = (data.user === userId) ? "message-you" : "message-friend";
+              let displayName = (data.user === userId) ? "You" : data.name || "Friend";
+              addMessage(`${displayName}: ${data.text}`, cls);
+          }
+      });
 });
 </script>
 
 </body>
 </html>
-
