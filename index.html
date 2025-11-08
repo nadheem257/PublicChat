@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>WhatsApp-Style Chat</title>
+<title>Cool Multi-Room Chat</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
 body {
-    margin:0; font-family: Arial; background:#ece5dd; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;
+    margin:0; font-family: 'Roboto', sans-serif; background:#ece5dd; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;
 }
 #chatApp {
     display:flex; width:90%; max-width:1000px; height:80%; background:#fff; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.2); overflow:hidden;
@@ -15,6 +17,11 @@ body {
     width:250px; background:#ededed; padding:10px; display:flex; flex-direction:column; border-right:1px solid #ccc;
 }
 #sidebar h2 { margin-top:0; font-size:20px; text-align:center; }
+#rooms { margin-top:10px; }
+.room { padding:10px; margin:5px 0; background:#fff; border-radius:5px; cursor:pointer; transition:0.3s; text-align:center; }
+.room:hover { background:#0af; color:white; }
+.room.active { background:#075e54; color:white; font-weight:bold; }
+/* Online users */
 #usersList { flex:1; overflow-y:auto; margin-top:10px; font-size:16px; }
 .user { padding:5px 10px; margin:3px 0; background:#fff; border-radius:5px; }
 /* Chat area */
@@ -22,15 +29,16 @@ body {
     flex:1; display:flex; flex-direction:column; background:#f0f0f0;
 }
 #chatHeader {
-    padding:15px; background:#075e54; color:white; font-size:20px; font-weight:bold;
+    padding:15px; background:#075e54; color:white; font-size:22px; font-weight:bold; text-shadow:1px 1px 2px #000;
 }
 #chatMessages { flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; }
 .bubble {
-    max-width:60%; padding:10px 15px; margin:5px 0; border-radius:20px; animation: fadeIn 0.3s; word-wrap: break-word; font-size:16px;
+    max-width:60%; padding:12px 18px; margin:5px 0; border-radius:20px; animation: fadeIn 0.3s; word-wrap: break-word; font-size:16px;
+    font-weight:500; letter-spacing:0.5px; text-shadow:0px 1px 2px rgba(0,0,0,0.2);
 }
 .bubble-you { background:#dcf8c6; align-self:flex-end; border-bottom-right-radius:0; color:#000; }
 .bubble-friend { background:#fff; align-self:flex-start; border-bottom-left-radius:0; color:#000; }
-#typing { font-size:14px; color:#555; margin:5px 15px; height:18px; }
+#typing { font-size:14px; color:#555; margin:5px 15px; height:18px; font-style:italic; }
 /* Input */
 #chatInput { display:flex; padding:10px; background:#eee; border-top:1px solid #ccc; }
 #chatInput input { flex:1; padding:12px 15px; border-radius:25px; border:none; font-size:16px; margin-right:10px; }
@@ -54,12 +62,17 @@ body {
     <!-- Sidebar -->
     <div id="sidebar">
         <h2>Online</h2>
+        <div id="rooms">
+            <div class="room active" data-room="room1">Room 1</div>
+            <div class="room" data-room="room2">Room 2</div>
+            <div class="room" data-room="room3">Room 3</div>
+        </div>
         <div id="usersList"></div>
     </div>
 
     <!-- Chat Area -->
     <div id="chatArea">
-        <div id="chatHeader">Chat Room</div>
+        <div id="chatHeader">Room 1</div>
         <div id="chatMessages"></div>
         <div id="typing"></div>
         <div id="chatInput">
@@ -94,11 +107,11 @@ document.addEventListener("DOMContentLoaded", function(){
     firebase.initializeApp(firebaseConfig);
 
     let db = firebase.database();
-    let room = "chat-room-1";
     let userId = "user-"+Math.floor(Math.random()*100000);
     let userName = "";
     let startTime = Date.now();
     let typingTimeout;
+    let currentRoom = "room1";
 
     // DOM
     let loginOverlay = document.getElementById("loginOverlay");
@@ -109,6 +122,22 @@ document.addEventListener("DOMContentLoaded", function(){
     let chatMessages = document.getElementById("chatMessages");
     let typingIndicator = document.getElementById("typing");
     let usersList = document.getElementById("usersList");
+    let chatHeader = document.getElementById("chatHeader");
+
+    // Rooms
+    let roomElements = document.querySelectorAll(".room");
+    roomElements.forEach(r=>{
+        r.addEventListener("click", ()=>{
+            roomElements.forEach(rr=>rr.classList.remove("active"));
+            r.classList.add("active");
+            currentRoom = r.dataset.room;
+            chatHeader.innerText = r.innerText;
+            chatMessages.innerHTML = "";
+            startTime = Date.now(); // only new messages from now
+            listenMessages();
+            updateUsersList();
+        });
+    });
 
     function addMessage(text, cls){
         let div = document.createElement("div");
@@ -123,47 +152,48 @@ document.addEventListener("DOMContentLoaded", function(){
         if(!name){ alert("Enter a name"); return; }
         userName = name;
         loginOverlay.style.display = "none";
-        db.ref(room+"-users/"+userId).set({name:userName});
-        db.ref(room+"-users/"+userId).onDisconnect().remove();
+        db.ref(currentRoom+"-users/"+userId).set({name:userName});
+        db.ref(currentRoom+"-users/"+userId).onDisconnect().remove();
+        listenMessages();
         updateUsersList();
     });
 
-    sendBtn.addEventListener("click", ()=>{
+    function sendMessage(){
         let text = msgInput.value.trim();
         if(!text) return;
-        db.ref(room).push({text, user:userId, name:userName, time:Date.now()});
+        db.ref(currentRoom).push({text, user:userId, name:userName, time:Date.now()});
         msgInput.value = "";
-    });
+    }
 
-    msgInput.addEventListener("input", ()=>{
-        db.ref(room+"-typing").set({user:userName});
+    sendBtn.addEventListener("click", sendMessage);
+    msgInput.addEventListener("keypress", e=>{
+        if(e.key==="Enter"){ sendMessage(); }
+        db.ref(currentRoom+"-typing").set({user:userName});
         clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(()=> db.ref(room+"-typing").remove(), 1000);
+        typingTimeout = setTimeout(()=> db.ref(currentRoom+"-typing").remove(), 1000);
     });
 
-    // Listen for new messages
-    db.ref(room).orderByChild("time").startAt(startTime).on("child_added", snap=>{
-        let data = snap.val();
-        if(data && data.text){
-            let cls = (data.user===userId) ? "bubble-you" : "bubble-friend";
-            let displayName = (data.user===userId) ? "You" : data.name||"Friend";
-            addMessage(displayName+": "+data.text, cls);
-        }
-    });
+    function listenMessages(){
+        db.ref(currentRoom).orderByChild("time").startAt(startTime).off();
+        db.ref(currentRoom).orderByChild("time").startAt(startTime).on("child_added", snap=>{
+            let data = snap.val();
+            if(data && data.text){
+                let cls = (data.user===userId) ? "bubble-you" : "bubble-friend";
+                let displayName = (data.user===userId) ? "You" : data.name||"Friend";
+                addMessage(displayName+": "+data.text, cls);
+            }
+        });
 
-    // Typing indicator
-    db.ref(room+"-typing").on("value", snap=>{
-        let val = snap.val();
-        if(val && val.user!==userName){
-            typingIndicator.innerText = val.user+" is typing...";
-        } else {
-            typingIndicator.innerText = "";
-        }
-    });
+        db.ref(currentRoom+"-typing").on("value", snap=>{
+            let val = snap.val();
+            if(val && val.user!==userName){
+                typingIndicator.innerText = val.user+" is typing...";
+            } else { typingIndicator.innerText = ""; }
+        });
+    }
 
-    // Online users
     function updateUsersList(){
-        db.ref(room+"-users").on("value", snap=>{
+        db.ref(currentRoom+"-users").on("value", snap=>{
             let users = snap.val() || {};
             usersList.innerHTML = Object.values(users).map(u=>u.name).join("<br>");
         });
