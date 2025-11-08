@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cool Firebase Chat</title>
+<title>Modern Firebase Chat</title>
 <style>
 body {
     margin:0; font-family: Arial; background:#111; color:white;
@@ -14,22 +14,27 @@ section {
     transition: all 0.5s ease; opacity:0; transform: translateY(50px); z-index:0;
 }
 section.active { opacity:1; transform: translateY(0); z-index:10; }
-button { padding:15px 30px; margin-top:15px; font-size:16px; background:#222; color:white; border:none; cursor:pointer; border-radius:5px; transition:0.3s; }
+button { padding:12px 25px; margin-top:15px; font-size:16px; background:#222; color:white; border:none; cursor:pointer; border-radius:8px; transition:0.3s; }
 button:hover { background:#0af; }
 input { padding:10px; margin-top:10px; font-size:16px; border-radius:5px; border:none; width:250px; text-align:center; }
-#chatMessages { background:#000; width:300px; height:300px; overflow-y:scroll; padding:10px; margin-top:10px; border-radius:5px; }
-.message-you { color:#0f0; animation: fadeIn 0.5s; }
-.message-friend { color:#0af; animation: fadeIn 0.5s; }
-@keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
-#chatInput { display:flex; margin-top:10px; }
-#chatInput input { flex:1; margin-right:5px; }
+
+#chatContainer { display:flex; flex-direction:column; align-items:flex-start; width:350px; max-width:90%; height:400px; background:#000; border-radius:10px; padding:10px; }
+#chatMessages { flex:1; width:100%; overflow-y:auto; padding-right:10px; }
+.bubble { padding:8px 12px; border-radius:15px; margin:5px 0; max-width:80%; display:inline-block; animation: fadeIn 0.3s; }
+.bubble-you { background:#0f0; color:#000; align-self:flex-end; border-bottom-right-radius:0; }
+.bubble-friend { background:#0af; color:#fff; align-self:flex-start; border-bottom-left-radius:0; }
+#chatInput { display:flex; width:100%; margin-top:10px; }
+#chatInput input { flex:1; margin-right:5px; border-radius:8px; padding:8px; }
+#typing { font-size:14px; color:#aaa; margin-top:5px; height:18px; }
+
+#onlineUsers { position:absolute; top:10px; right:10px; background:#222; padding:10px; border-radius:8px; font-size:14px; max-width:150px; }
 </style>
 </head>
 <body>
 
 <!-- Home Page -->
 <section id="homePage" class="active">
-    <h1>Welcome to Cool Chat!</h1>
+    <h1>Welcome to Modern Chat!</h1>
     <button id="enterChatBtn">Enter Chat</button>
 </section>
 
@@ -43,11 +48,15 @@ input { padding:10px; margin-top:10px; font-size:16px; border-radius:5px; border
 <!-- Chat Page -->
 <section id="chatPage">
     <h2>Chat Room</h2>
-    <div id="chatMessages"></div>
-    <div id="chatInput">
-        <input id="msgInput" placeholder="Type a message...">
-        <button id="sendBtn">Send</button>
+    <div id="chatContainer">
+        <div id="chatMessages"></div>
+        <div id="typing"></div>
+        <div id="chatInput">
+            <input id="msgInput" placeholder="Type a message...">
+            <button id="sendBtn">Send</button>
+        </div>
     </div>
+    <div id="onlineUsers">Online:<br><span id="usersList"></span></div>
 </section>
 
 <!-- Firebase scripts -->
@@ -81,12 +90,22 @@ document.addEventListener("DOMContentLoaded", function() {
     let chatMessages = document.getElementById("chatMessages");
     let msgInput = document.getElementById("msgInput");
     let sendBtn = document.getElementById("sendBtn");
+    let typingIndicator = document.getElementById("typing");
+    let usersList = document.getElementById("usersList");
 
     let userName = "";
     let userId = "user-" + Math.floor(Math.random()*100000);
 
-    // Session start time
+    // Track session start
     let startTime = Date.now();
+
+    // Keep track of typing
+    let typingTimeout;
+    function showTyping(name){
+        typingIndicator.innerText = name + " is typing...";
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(()=>{ typingIndicator.innerText = ""; }, 1000);
+    }
 
     // Page transitions
     enterChatBtn.addEventListener("click", () => {
@@ -100,16 +119,27 @@ document.addEventListener("DOMContentLoaded", function() {
         userName = name;
         loginPage.classList.remove("active");
         chatPage.classList.add("active");
-        addMessage(`Welcome ${userName}!`, "message-you");
+        addMessage(`Welcome ${userName}!`, "bubble-you");
+        // Add self to online users
+        db.ref(room + "-users/" + userId).set({name:userName});
+        db.ref(room + "-users/" + userId).onDisconnect().remove();
+        updateUsersList();
     });
 
-    // Add message helper
     function addMessage(text, cls){
-        chatMessages.innerHTML += `<div class="${cls}">${text}</div>`;
+        let div = document.createElement("div");
+        div.className = "bubble " + cls;
+        div.innerText = text;
+        chatMessages.appendChild(div);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     // Send message
+    msgInput.addEventListener("input", () => {
+        db.ref(room + "-typing").set({user:userName});
+        setTimeout(()=> db.ref(room + "-typing").remove(), 1000);
+    });
+
     sendBtn.addEventListener("click", () => {
         let text = msgInput.value.trim();
         if(!text) return;
@@ -117,18 +147,35 @@ document.addEventListener("DOMContentLoaded", function() {
         msgInput.value = "";
     });
 
-    // Listen for messages starting from session start
+    // Listen for messages
     db.ref(room)
       .orderByChild("time")
       .startAt(startTime)
       .on("child_added", snap => {
           let data = snap.val();
           if(data && data.text){
-              let cls = (data.user === userId) ? "message-you" : "message-friend";
+              let cls = (data.user === userId) ? "bubble-you" : "bubble-friend";
               let displayName = (data.user === userId) ? "You" : data.name || "Friend";
               addMessage(`${displayName}: ${data.text}`, cls);
           }
       });
+
+    // Typing indicator
+    db.ref(room + "-typing").on("value", snap => {
+        let val = snap.val();
+        if(val && val.user !== userName){
+            showTyping(val.user);
+        }
+    });
+
+    // Online users
+    function updateUsersList(){
+        db.ref(room + "-users").on("value", snap => {
+            let users = snap.val() || {};
+            usersList.innerHTML = Object.values(users).map(u=>u.name).join("<br>");
+        });
+    }
+
 });
 </script>
 
