@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate WhatsApp-Style Chat Fixed</title>
+<title>WhatsApp-Style Chat Fixed</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.css"/>
 <style>
 body {margin:0;font-family:'Roboto',sans-serif;background:#ece5dd;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden;}
@@ -193,18 +193,12 @@ document.addEventListener("DOMContentLoaded", function(){
         userName=name; 
         homePage.style.display="none"; 
         document.getElementById("chatApp").style.display="flex";
-        $("#msgInput").emojioneArea({ pickerPosition: "top", tonesStyle: "bullet" });
+        $("#msgInput").emojioneArea({ pickerPosition: "top", tonesStyle: "bullet", events: { keyup: function(editor, event){ if(event.key==='Enter'){ sendMessage($("#msgInput").data("emojioneArea").getText()); } } } });
         updateRooms(); listenMessages();
     });
 
-    // Send button + Enter key
+    // Send button
     sendBtn.addEventListener("click", ()=> sendMessage($("#msgInput").data("emojioneArea").getText()));
-    msgInput.addEventListener("keypress", function(e){
-        if(e.key==="Enter"){ 
-            e.preventDefault(); 
-            sendMessage($("#msgInput").data("emojioneArea").getText());
-        }
-    });
 
     // Create Group
     createGroupBtn.addEventListener("click", ()=>{
