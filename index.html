@@ -1,33 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Firebase Chat</title>
+<meta charset="UTF-8">
+<title>Cool Firebase Chat</title>
 <style>
-body { font-family: Arial; background:#111; color:white; padding:20px; }
-#chatContainer { display:none; }
-#loginContainer { display:block; }
-input, button { width:100%; padding:10px; margin-top:10px; box-sizing:border-box; }
-#messages { background:#000; height:300px; overflow-y:scroll; padding:10px; margin-top:10px; }
-button { cursor:pointer; background:#222; color:white; border:none; }
-button:disabled { background:#555; cursor:not-allowed; }
-.message-you { color:#0f0; }
-.message-friend { color:#0af; }
+body {
+    margin:0; font-family: Arial; background:#111; color:white;
+    display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden;
+}
+section {
+    position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center;
+    transition: all 0.5s ease; opacity:0; transform: translateY(50px);
+}
+section.active { opacity:1; transform: translateY(0); }
+button { padding:15px 30px; margin-top:15px; font-size:16px; background:#222; color:white; border:none; cursor:pointer; border-radius:5px; transition:0.3s; }
+button:hover { background:#0af; }
+input { padding:10px; margin-top:10px; font-size:16px; border-radius:5px; border:none; width:250px; text-align:center; }
+#chatMessages { background:#000; width:300px; height:300px; overflow-y:scroll; padding:10px; margin-top:10px; border-radius:5px; }
+.message-you { color:#0f0; animation: fadeIn 0.5s; }
+.message-friend { color:#0af; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+#chatInput { display:flex; margin-top:10px; }
+#chatInput input { flex:1; margin-right:5px; }
 </style>
 </head>
 <body>
 
-<div id="loginContainer">
-  <h2>Enter Your Name</h2>
-  <input id="nameInput" placeholder="Type your name...">
-  <button id="enterBtn">Enter Chat</button>
-</div>
+<!-- Home Page -->
+<section id="homePage" class="active">
+    <h1>Welcome to Cool Chat!</h1>
+    <button id="enterChatBtn">Enter Chat</button>
+</section>
 
-<div id="chatContainer">
-  <h2>Firebase Chat</h2>
-  <div id="messages"></div>
-  <input id="msg" placeholder="Type your message...">
-  <button id="sendBtn">Send</button>
-</div>
+<!-- Login Page -->
+<section id="loginPage">
+    <h2>Enter Your Name</h2>
+    <input id="nameInput" placeholder="Your name...">
+    <button id="loginBtn">Login</button>
+</section>
+
+<!-- Chat Page -->
+<section id="chatPage">
+    <h2>Chat Room</h2>
+    <div id="chatMessages"></div>
+    <div id="chatInput">
+        <input id="msgInput" placeholder="Type a message...">
+        <button id="sendBtn">Send</button>
+    </div>
+</section>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -47,41 +67,49 @@ firebase.initializeApp(firebaseConfig);
 
 let db = firebase.database();
 let room = "chat-room-1";
-let messages = document.getElementById("messages");
-let msgInput = document.getElementById("msg");
-let sendBtn = document.getElementById("sendBtn");
 
-let loginContainer = document.getElementById("loginContainer");
-let chatContainer = document.getElementById("chatContainer");
+let homePage = document.getElementById("homePage");
+let loginPage = document.getElementById("loginPage");
+let chatPage = document.getElementById("chatPage");
+
+let enterChatBtn = document.getElementById("enterChatBtn");
+let loginBtn = document.getElementById("loginBtn");
 let nameInput = document.getElementById("nameInput");
-let enterBtn = document.getElementById("enterBtn");
+let chatMessages = document.getElementById("chatMessages");
+let msgInput = document.getElementById("msgInput");
+let sendBtn = document.getElementById("sendBtn");
 
 let userName = "";
 let userId = "user-" + Math.floor(Math.random()*100000);
 
-// Function to add messages
-function addMessage(text, cls) {
-    messages.innerHTML += `<div class="${cls}">${text}</div>`;
-    messages.scrollTop = messages.scrollHeight;
+// Page transitions
+enterChatBtn.onclick = () => {
+    homePage.classList.remove("active");
+    loginPage.classList.add("active");
+};
+
+loginBtn.onclick = () => {
+    let name = nameInput.value.trim();
+    if(!name) { alert("Please enter your name!"); return; }
+    userName = name;
+    loginPage.classList.remove("active");
+    chatPage.classList.add("active");
+    addMessage(`Welcome ${userName}!`, "message-you");
+};
+
+// Add message helper
+function addMessage(text, cls){
+    chatMessages.innerHTML += `<div class="${cls}">${text}</div>`;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Enter chat
-enterBtn.addEventListener("click", () => {
-    let name = nameInput.value.trim();
-    if(!name) { alert("Please enter a name!"); return; }
-    userName = name;
-    loginContainer.style.display = "none";
-    chatContainer.style.display = "block";
-    addMessage(`Welcome ${userName}!`, "message-you");
-});
-
 // Send message
-sendBtn.addEventListener("click", () => {
+sendBtn.onclick = () => {
     let text = msgInput.value.trim();
     if(!text) return;
     db.ref(room).push({ text, user: userId, name: userName, time: Date.now() });
     msgInput.value = "";
-});
+};
 
 // Listen for messages
 db.ref(room).on("child_added", snap => {
