@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,12 +32,12 @@ button:hover{opacity:0.8;}
     <h2>Super Chat</h2>
     <input type="text" id="usernameInput" placeholder="Enter your name">
     <br>
-    <button onclick="enterChat()">Enter Chat</button>
+    <button id="enterChatBtn">Enter Chat</button>
 </div>
 
 <header>
     <span id="roomName">Public Chat</span>
-    <button onclick="toggleRooms()">Rooms</button>
+    <button id="toggleRoomsBtn">Rooms</button>
 </header>
 
 <div style="display:flex;flex:1;">
@@ -48,9 +47,9 @@ button:hover{opacity:0.8;}
         <div id="messages"></div>
 
         <div id="inputBar">
-            <button onclick="startSelect()">Select</button>
-            <input id="inputText" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg()">
-            <button onclick="sendMsg()">Send</button>
+            <button id="selectBtn">Select</button>
+            <input id="inputText" placeholder="Type a message...">
+            <button id="sendBtn">Send</button>
         </div>
     </div>
 </div>
@@ -72,7 +71,6 @@ const firebaseConfig = {
   appId: "APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
-
 let db = firebase.database();
 
 let username = "";
@@ -80,39 +78,49 @@ let currentRoom = "Public";
 let selecting = false;
 let selectedMessages = [];
 
-// ✅ Enter Chat
-function enterChat(){
-    username = document.getElementById("usernameInput").value.trim();
-    if(!username){alert("Enter a name!");return;}
+const homeScreen = document.getElementById("homeScreen");
+const enterChatBtn = document.getElementById("enterChatBtn");
+const inputText = document.getElementById("inputText");
+const messagesDiv = document.getElementById("messages");
+const roomsList = document.getElementById("roomsList");
+const roomNameSpan = document.getElementById("roomName");
+const sendBtn = document.getElementById("sendBtn");
+const toggleRoomsBtn = document.getElementById("toggleRoomsBtn");
+const selectBtn = document.getElementById("selectBtn");
 
-    document.getElementById("homeScreen").classList.add("hidden");
+// ✅ Enter Chat
+enterChatBtn.addEventListener("click", ()=>{
+    username = document.getElementById("usernameInput").value.trim();
+    if(!username){ alert("Enter a name!"); return; }
+    homeScreen.classList.add("hidden");
     loadRooms();
     joinRoom("Public");
-}
+});
 
-// ✅ Room UI
-function toggleRooms(){
-    let rl = document.getElementById("roomsList");
-    rl.style.display = rl.style.display==="block" ? "none" : "block";
-}
+// ✅ Toggle Rooms
+toggleRoomsBtn.addEventListener("click", ()=>{
+    roomsList.style.display = roomsList.style.display==="block"?"none":"block";
+});
 
 // ✅ Load Rooms
 function loadRooms(){
-    let box = document.getElementById("roomsList");
-    box.innerHTML = "";
-    box.innerHTML += `<button class="roomButton" onclick="newRoomPrompt()">+ Create Group</button>`;
-
+    roomsList.innerHTML = "";
+    roomsList.innerHTML += `<button class="roomButton" onclick="newRoomPrompt()">+ Create Group</button>`;
     db.ref("rooms").once("value", snap=>{
         snap.forEach(r=>{
             let name = r.key;
-            box.innerHTML += `<button class="roomButton" onclick="joinRoom('${name}')">${name}</button>`;
+            let btn = document.createElement("button");
+            btn.className="roomButton";
+            btn.innerText=name;
+            btn.onclick=()=>joinRoom(name);
+            roomsList.appendChild(btn);
         });
     });
 }
 
 // ✅ Create Room
 function newRoomPrompt(){
-    let name = prompt("Group name?");
+    let name=prompt("Group name?");
     if(!name) return;
     db.ref("rooms/"+name).set(true);
     loadRooms();
@@ -121,76 +129,68 @@ function newRoomPrompt(){
 // ✅ Join Room
 function joinRoom(room){
     currentRoom = room;
-    document.getElementById("roomName").innerText = room;
-    document.getElementById("messages").innerHTML = "";
+    roomNameSpan.innerText = room;
+    messagesDiv.innerHTML = "";
     loadRooms();
     fetchMessages();
 }
 
-// ✅ Load messages
+// ✅ Fetch Messages
 function fetchMessages(){
     db.ref("messages/"+currentRoom).off();
-    db.ref("messages/"+currentRoom).on("child_added", s=>{
-        let data = s.val();
+    db.ref("messages/"+currentRoom).on("child_added", snap=>{
+        let data = snap.val();
         displayMessage(data.id, data.user, data.text);
     });
 }
 
-// ✅ Display message bubble
+// ✅ Display message
 function displayMessage(id,user,text){
     let div = document.createElement("div");
-    div.className = user===username ? "msg me" : "msg them";
+    div.className = user===username?"msg me":"msg them";
     div.innerText = `${user}: ${text}`;
-    
     if(selecting){
-        div.onclick = ()=>toggleSelect(id,div);
+        div.onclick=()=>toggleSelect(id,div);
     }
-
-    document.getElementById("messages").appendChild(div);
-    document.getElementById("messages").scrollTop = 9999999;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = 9999999;
 }
 
-// ✅ Toggle message select
-function toggleSelect(id,element){
+// ✅ Send Message
+sendBtn.addEventListener("click", sendMsg);
+inputText.addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendMsg(); });
+
+function sendMsg(){
+    let t = inputText.value.trim();
+    if(!t) return;
+    let id = Date.now();
+    db.ref("messages/"+currentRoom+"/"+id).set({id:id,user:username,text:t});
+    inputText.value="";
+}
+
+// ✅ Select Messages
+selectBtn.addEventListener("click", ()=>{
+    selecting=!selecting;
+    alert(selecting?"Tap messages to select & delete":"Select mode off");
+    if(!selecting) deleteSelected();
+});
+
+function toggleSelect(id,el){
     if(selectedMessages.includes(id)){
         selectedMessages = selectedMessages.filter(x=>x!==id);
-        element.style.border="none";
-    } else {
+        el.style.border="none";
+    } else{
         selectedMessages.push(id);
-        element.style.border="2px solid red";
+        el.style.border="2px solid red";
     }
 }
 
-// ✅ Start selecting
-function startSelect(){
-    selecting = !selecting;
-    alert(selecting ? "Tap messages to select & delete" : "Select mode off");
-    if(!selecting) deleteSelected();
-}
-
-// ✅ Delete selected
 function deleteSelected(){
     selectedMessages.forEach(id=>{
         db.ref("messages/"+currentRoom+"/"+id).remove();
     });
     selectedMessages=[];
 }
-
-// ✅ Send message
-function sendMsg(){
-    let t = inputText.value.trim();
-    if(!t) return;
-
-    let id = Date.now();
-    db.ref("messages/"+currentRoom+"/"+id).set({
-        id:id,
-        user:username,
-        text:t
-    });
-
-    inputText.value="";
-}
 </script>
-
 </body>
 </html>
