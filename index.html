@@ -13,6 +13,7 @@ body {
 #chatApp {
     display:flex; width:95%; max-width:1200px; height:85%; background:#fff; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.2); overflow:hidden;
 }
+
 /* Left Sidebar - Rooms */
 #leftSidebar {
     width:250px; background:#ededed; display:flex; flex-direction:column; border-right:1px solid #ccc;
@@ -24,6 +25,7 @@ body {
 .room.active { background:#075e54; color:white; font-weight:bold; }
 #createGroupBtn { margin:10px; padding:8px; font-size:16px; border:none; border-radius:8px; cursor:pointer; background:#075e54; color:white; }
 #createGroupBtn:hover { background:#128c7e; }
+
 /* Right Sidebar - Online Users */
 #rightSidebar {
     width:200px; background:#ededed; display:flex; flex-direction:column; border-left:1px solid #ccc;
@@ -31,6 +33,7 @@ body {
 #rightSidebar h2 { margin:10px; font-size:18px; text-align:center; }
 #usersList { flex:1; overflow-y:auto; padding:5px; font-size:16px; }
 .user { padding:5px 10px; margin:3px 0; background:#fff; border-radius:5px; }
+
 /* Chat area */
 #chatArea {
     flex:1; display:flex; flex-direction:column; background:#f0f0f0;
@@ -46,11 +49,13 @@ body {
 .bubble-you { background:#dcf8c6; align-self:flex-end; border-bottom-right-radius:0; color:#000; }
 .bubble-friend { background:#fff; align-self:flex-start; border-bottom-left-radius:0; color:#000; }
 #typing { font-size:14px; color:#555; margin:5px 15px; height:18px; font-style:italic; }
+
 /* Input area */
 #chatInput { display:flex; padding:10px; background:#eee; border-top:1px solid #ccc; align-items:center; }
 #chatInput input[type="text"] { flex:1; padding:12px 15px; border-radius:25px; border:none; font-size:16px; margin-right:10px; }
 #chatInput button { padding:12px 15px; border:none; border-radius:25px; background:#075e54; color:white; cursor:pointer; font-size:16px; transition:0.3s; margin-right:5px; }
 #chatInput button:hover { background:#128c7e; }
+
 /* Login overlay */
 #loginOverlay {
     position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:10;
@@ -58,7 +63,9 @@ body {
 #loginOverlay input { padding:12px; font-size:18px; border-radius:8px; border:none; margin-bottom:10px; width:250px; }
 #loginOverlay button { padding:12px 25px; font-size:18px; border:none; border-radius:8px; background:#075e54; color:white; cursor:pointer; }
 #loginOverlay button:hover { background:#128c7e; }
+
 @keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+
 img.chat-image { max-width:200px; border-radius:15px; margin-top:5px; }
 </style>
 </head>
@@ -68,13 +75,14 @@ img.chat-image { max-width:200px; border-radius:15px; margin-top:5px; }
     <!-- Left Sidebar -->
     <div id="leftSidebar">
         <h2>Rooms</h2>
+        <button class="room active" data-room="room1">Public Temporary Chat</button>
         <button id="createGroupBtn">+ Create Group</button>
         <div id="rooms"></div>
     </div>
 
     <!-- Chat Area -->
     <div id="chatArea">
-        <div id="chatHeader">Room 1</div>
+        <div id="chatHeader">Public Temporary Chat</div>
         <div id="chatMessages"></div>
         <div id="typing"></div>
         <div id="chatInput">
@@ -100,9 +108,9 @@ img.chat-image { max-width:200px; border-radius:15px; margin-top:5px; }
     <button id="loginBtn">Join Chat</button>
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.js"></script>
 
 <script>
@@ -123,6 +131,7 @@ document.addEventListener("DOMContentLoaded", function(){
     let userName = "";
     let currentRoom = "room1";
     let typingTimeout;
+    let tempMessages = []; // store temporary messages for Public Temporary Chat
 
     // DOM
     let loginOverlay = document.getElementById("loginOverlay");
@@ -137,15 +146,11 @@ document.addEventListener("DOMContentLoaded", function(){
     let roomsDiv = document.getElementById("rooms");
     let createGroupBtn = document.getElementById("createGroupBtn");
     let attachBtn = document.getElementById("attachBtn");
-    let emojiBtn = document.getElementById("emojiBtn");
     let fileInput = document.getElementById("fileInput");
 
     // Emoji picker
     $(function() {
-        $("#msgInput").emojioneArea({
-            pickerPosition: "top",
-            tonesStyle: "bullet"
-        });
+        $("#msgInput").emojioneArea({ pickerPosition: "top", tonesStyle: "bullet" });
     });
 
     function addMessage(content, cls, isImage=false){
@@ -178,6 +183,7 @@ document.addEventListener("DOMContentLoaded", function(){
                     currentRoom = r;
                     chatHeader.innerText = data[r].name;
                     chatMessages.innerHTML = "";
+                    if(currentRoom==="room1") renderTempMessages();
                     listenMessages();
                     updateUsersList();
                     document.querySelectorAll(".room").forEach(rr=>rr.classList.remove("active"));
@@ -201,8 +207,10 @@ document.addEventListener("DOMContentLoaded", function(){
         if(!name){ alert("Enter a name"); return; }
         userName = name;
         loginOverlay.style.display = "none";
-        db.ref(currentRoom+"-users/"+userId).set({name:userName});
-        db.ref(currentRoom+"-users/"+userId).onDisconnect().remove();
+        if(currentRoom!=="room1"){
+            db.ref(currentRoom+"-users/"+userId).set({name:userName});
+            db.ref(currentRoom+"-users/"+userId).onDisconnect().remove();
+        }
         updateRooms();
         listenMessages();
         updateUsersList();
@@ -210,17 +218,39 @@ document.addEventListener("DOMContentLoaded", function(){
 
     function sendMessage(text, isImage=false){
         if(!text) return;
-        db.ref(currentRoom).push({text, user:userId, name:userName, time:Date.now(), isImage});
+
+        if(currentRoom==="room1"){
+            tempMessages.push({text, user:userId, name:userName, isImage});
+            renderTempMessages();
+        } else {
+            db.ref(currentRoom).push({text, user:userId, name:userName, time:Date.now(), isImage});
+        }
+
         if(!isImage) $("#msgInput").data("emojioneArea").setText('');
+    }
+
+    function renderTempMessages(){
+        chatMessages.innerHTML = "";
+        tempMessages.forEach(m=>{
+            let cls = (m.user===userId) ? "bubble-you" : "bubble-friend";
+            let displayName = (m.user===userId) ? "You" : m.name||"Friend";
+            if(m.isImage){
+                addMessage(m.text, cls, true);
+            } else {
+                addMessage(displayName+": "+m.text, cls);
+            }
+        });
     }
 
     sendBtn.addEventListener("click", ()=> sendMessage($("#msgInput").data("emojioneArea").getText()));
 
     msgInput.addEventListener("keypress", e=>{
         if(e.key==="Enter"){ sendMessage($("#msgInput").data("emojioneArea").getText()); }
-        db.ref(currentRoom+"-typing").set({user:userName});
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(()=> db.ref(currentRoom+"-typing").remove(), 1000);
+        if(currentRoom!=="room1"){
+            db.ref(currentRoom+"-typing").set({user:userName});
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(()=> db.ref(currentRoom+"-typing").remove(), 1000);
+        }
     });
 
     attachBtn.addEventListener("click", ()=> fileInput.click());
@@ -236,6 +266,8 @@ document.addEventListener("DOMContentLoaded", function(){
     });
 
     function listenMessages(){
+        if(currentRoom==="room1") return; // Room1 is temporary, no Firebase listening
+
         db.ref(currentRoom).off();
         db.ref(currentRoom).on("child_added", snap=>{
             let data = snap.val();
@@ -259,6 +291,10 @@ document.addEventListener("DOMContentLoaded", function(){
     }
 
     function updateUsersList(){
+        if(currentRoom==="room1") {
+            usersList.innerHTML = "Everyone";
+            return;
+        }
         db.ref(currentRoom+"-users").on("value", snap=>{
             let users = snap.val() || {};
             usersList.innerHTML = Object.values(users).map(u=>u.name).join("<br>");
@@ -267,6 +303,5 @@ document.addEventListener("DOMContentLoaded", function(){
 
 });
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </body>
 </html>
