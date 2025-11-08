@@ -59,29 +59,29 @@ let enterBtn = document.getElementById("enterBtn");
 let userName = "";
 let userId = "user-" + Math.floor(Math.random()*100000);
 
-// Enter chat
-enterBtn.onclick = () => {
-    let name = nameInput.value.trim();
-    if(!name) return;
-    userName = name;
-    loginContainer.style.display = "none";
-    chatContainer.style.display = "block";
-    addMessage(`Welcome ${userName}!`);
-};
-
-// Send message
-sendBtn.onclick = () => {
-    let text = msgInput.value.trim();
-    if(!text) return;
-    db.ref(room).push({ text, user: userId, name: userName, time: Date.now() });
-    msgInput.value = "";
-};
-
-// Helper to add messages
+// Function to add messages
 function addMessage(text, cls) {
     messages.innerHTML += `<div class="${cls}">${text}</div>`;
     messages.scrollTop = messages.scrollHeight;
 }
+
+// Enter chat
+enterBtn.addEventListener("click", () => {
+    let name = nameInput.value.trim();
+    if(!name) { alert("Please enter a name!"); return; }
+    userName = name;
+    loginContainer.style.display = "none";
+    chatContainer.style.display = "block";
+    addMessage(`Welcome ${userName}!`, "message-you");
+});
+
+// Send message
+sendBtn.addEventListener("click", () => {
+    let text = msgInput.value.trim();
+    if(!text) return;
+    db.ref(room).push({ text, user: userId, name: userName, time: Date.now() });
+    msgInput.value = "";
+});
 
 // Listen for messages
 db.ref(room).on("child_added", snap => {
