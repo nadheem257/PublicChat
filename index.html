@@ -1,244 +1,196 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>WhatsApp-Style Chat Fixed</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.css"/>
+<title>Super Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body {margin:0;font-family:'Roboto',sans-serif;background:#ece5dd;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden;}
-#chatApp {display:none;width:95%;max-width:1400px;height:90%;background:#fff;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.2);overflow:hidden; display:flex;}
-#homePage {position:absolute;top:0;left:0;width:100%;height:100%;background:#075e54;display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;}
-#homePage input, #homePage button {padding:12px; font-size:18px; border-radius:25px; border:none; margin-bottom:10px; width:300px;}
-#homePage button {background:#128c7e; color:white; cursor:pointer;}
-#homePage button:hover {background:#0af;}
-#leftSidebar, #rightSidebar {width:250px;background:#ededed;display:flex;flex-direction:column;overflow:hidden;}
-#leftSidebar {border-right:1px solid #ccc;}
-#rightSidebar {border-left:1px solid #ccc;}
-#leftSidebar h2, #rightSidebar h2 {text-align:center; margin:10px;}
-#rooms {flex:1;overflow-y:auto;padding:5px;}
-.room, #createGroupBtn, #deleteAllBtn, #selectBtn, #deleteSelectedBtn, #sendBtn, #emojiBtn, #attachBtn {border:none;border-radius:25px;background:#075e54;color:white;cursor:pointer;font-size:16px;margin:5px;padding:10px;}
-.room:hover, #createGroupBtn:hover, #deleteAllBtn:hover, #selectBtn:hover, #deleteSelectedBtn:hover, #sendBtn:hover, #emojiBtn:hover, #attachBtn:hover {background:#128c7e;}
-.room.active {background:#075e54;color:white;font-weight:bold;}
-#chatArea {flex:1;display:flex;flex-direction:column;background:#f0f0f0;}
-#chatHeader {padding:15px;background:#075e54;color:white;font-size:22px;display:flex;justify-content:space-between;align-items:center;}
-#chatMessages {flex:1;padding:15px;overflow-y:auto;display:flex;flex-direction:column;}
-.bubble {max-width:60%;padding:12px 18px;margin:5px 0;border-radius:20px;word-wrap: break-word;font-size:16px;position: relative; cursor:pointer;}
-.bubble-you {background:#dcf8c6;align-self:flex-end;border-bottom-right-radius:0;color:#000;}
-.bubble-friend {background:#fff;align-self:flex-start;border-bottom-left-radius:0;color:#000;}
-.bubble.selected {border:2px solid red;}
-#chatInput {display:flex;padding:10px;background:#eee;border-top:1px solid #ccc;align-items:center;}
-#chatInput input[type="text"] {flex:1;padding:12px 15px;border-radius:25px;border:none;font-size:16px;margin-right:10px;}
-img.chat-image {max-width:200px;border-radius:15px;margin-top:5px; cursor:pointer;}
+body{margin:0;font-family:Arial;background:#0a0f14;color:#fff;display:flex;flex-direction:column;height:100vh;}
+header{padding:15px;background:#111;border-bottom:1px solid #222;font-size:18px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
+#roomsList{padding:10px;background:#0e131a;border-right:1px solid #222;width:200px;overflow-y:auto;display:none;flex-shrink:0;}
+#chatArea{flex:1;display:flex;flex-direction:column;}
+#messages{flex:1;padding:10px;overflow-y:auto;}
+.msg{max-width:70%;margin:6px;padding:10px;border-radius:10px;display:inline-block;}
+.me{background:#1f8ef1;margin-left:auto;border-bottom-right-radius:0;}
+.them{background:#2c2f33;border-bottom-left-radius:0;}
+#inputBar{padding:10px;display:flex;gap:10px;background:#111;}
+#inputText{flex:1;padding:10px;border:none;border-radius:8px;font-size:16px;}
+button{padding:10px;border:none;border-radius:8px;background:#1f8ef1;color:white;font-size:14px;cursor:pointer;transition:.2s;}
+button:hover{opacity:0.8;}
+.roomButton{width:100%;background:#131b26;padding:12px;margin-bottom:6px;border-radius:8px;text-align:left;}
+.activeRoom{background:#1f8ef1;}
+#homeScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0f14;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:5;}
+#homeScreen input{padding:10px;width:60%;margin-top:10px;border-radius:6px;border:none;}
+.hidden{display:none;}
 </style>
 </head>
+
 <body>
 
-<div id="homePage">
-    <h1>Welcome to Ultimate Chat!</h1>
-    <input type="text" id="nameInputHome" placeholder="Enter your name...">
-    <button id="enterChatBtn">Enter Chat</button>
+<!-- LOGIN SCREEN -->
+<div id="homeScreen">
+    <h2>Super Chat</h2>
+    <input type="text" id="usernameInput" placeholder="Enter your name">
+    <br>
+    <button onclick="enterChat()">Enter Chat</button>
 </div>
 
-<div id="chatApp">
-    <div id="leftSidebar">
-        <h2>Rooms</h2>
-        <button class="room active" data-room="room1">Public Temporary Chat</button>
-        <button id="createGroupBtn">+ Create Group</button>
-        <div id="rooms"></div>
-    </div>
+<header>
+    <span id="roomName">Public Chat</span>
+    <button onclick="toggleRooms()">Rooms</button>
+</header>
+
+<div style="display:flex;flex:1;">
+    <div id="roomsList"></div>
 
     <div id="chatArea">
-        <div id="chatHeader">
-            <span id="chatTitle">Public Temporary Chat</span>
-            <div>
-                <button id="deleteAllBtn">Delete All</button>
-                <button id="selectBtn">Select</button>
-                <button id="deleteSelectedBtn" style="display:none;">Delete Selected</button>
-            </div>
-        </div>
-        <div id="chatMessages"></div>
-        <div id="chatInput">
-            <button id="attachBtn">📎</button>
-            <button id="emojiBtn">😊</button>
-            <input type="text" id="msgInput" placeholder="Type a message...">
-            <button id="sendBtn">Send</button>
-            <input type="file" id="fileInput" style="display:none;">
-        </div>
-    </div>
+        <div id="messages"></div>
 
-    <div id="rightSidebar">
-        <h2>Online Users</h2>
-        <div id="usersList"></div>
+        <div id="inputBar">
+            <button onclick="startSelect()">Select</button>
+            <input id="inputText" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg()">
+            <button onclick="sendMsg()">Send</button>
+        </div>
     </div>
 </div>
 
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-    const firebaseConfig = {
-      apiKey: "AIzaSyCwSqm65CoNwPc3PiVo1T40YJM2MAcg480",
-      authDomain: "server-1-9fa4f.firebaseapp.com",
-      databaseURL: "https://server-1-9fa4f-default-rtdb.firebaseio.com",
-      projectId: "server-1-9fa4f",
-      storageBucket: "server-1-9fa4f.firebasestorage.app",
-      messagingSenderId: "1019529146427",
-      appId: "1:1019529146427:web:e22f6bbe1623b528f6ec1e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    let db = firebase.database();
+// 🔥 Replace with your Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_APP.firebaseapp.com",
+  databaseURL: "https://YOUR_APP-default-rtdb.firebaseio.com",
+  projectId: "YOUR_APP",
+  storageBucket: "YOUR_APP.appspot.com",
+  messagingSenderId: "ID",
+  appId: "APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
 
-    let userId = "user-"+Math.floor(Math.random()*100000);
-    let userName = "";
-    let currentRoom = "room1";
-    let tempMessages = [];
-    let selecting = false;
-    let selectedMessages = new Set();
-    let groups = ["room1"];
+let db = firebase.database();
 
-    let homePage = document.getElementById("homePage");
-    let enterChatBtn = document.getElementById("enterChatBtn");
-    let nameInputHome = document.getElementById("nameInputHome");
-    let msgInput = document.getElementById("msgInput");
-    let sendBtn = document.getElementById("sendBtn");
-    let chatMessages = document.getElementById("chatMessages");
-    let chatTitle = document.getElementById("chatTitle");
-    let roomsDiv = document.getElementById("rooms");
-    let createGroupBtn = document.getElementById("createGroupBtn");
-    let attachBtn = document.getElementById("attachBtn");
-    let fileInput = document.getElementById("fileInput");
-    let deleteAllBtn = document.getElementById("deleteAllBtn");
-    let selectBtn = document.getElementById("selectBtn");
-    let deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
+let username = "";
+let currentRoom = "Public";
+let selecting = false;
+let selectedMessages = [];
 
-    function addMessage(content, cls, id=null, isImage=false){
-        let div = document.createElement("div");
-        div.className = "bubble "+cls;
-        if(id) div.dataset.id=id;
-        if(isImage){ let img=document.createElement("img"); img.src=content; img.className="chat-image"; div.appendChild(img); }
-        else div.innerText=content;
-        div.addEventListener("click", ()=>{
-            if(selecting && id){
-                if(div.classList.contains("selected")) { div.classList.remove("selected"); selectedMessages.delete(id); }
-                else { div.classList.add("selected"); selectedMessages.add(id); }
-            }
+// ✅ Enter Chat
+function enterChat(){
+    username = document.getElementById("usernameInput").value.trim();
+    if(!username){alert("Enter a name!");return;}
+
+    document.getElementById("homeScreen").classList.add("hidden");
+    loadRooms();
+    joinRoom("Public");
+}
+
+// ✅ Room UI
+function toggleRooms(){
+    let rl = document.getElementById("roomsList");
+    rl.style.display = rl.style.display==="block" ? "none" : "block";
+}
+
+// ✅ Load Rooms
+function loadRooms(){
+    let box = document.getElementById("roomsList");
+    box.innerHTML = "";
+    box.innerHTML += `<button class="roomButton" onclick="newRoomPrompt()">+ Create Group</button>`;
+
+    db.ref("rooms").once("value", snap=>{
+        snap.forEach(r=>{
+            let name = r.key;
+            box.innerHTML += `<button class="roomButton" onclick="joinRoom('${name}')">${name}</button>`;
         });
-        chatMessages.appendChild(div);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+}
+
+// ✅ Create Room
+function newRoomPrompt(){
+    let name = prompt("Group name?");
+    if(!name) return;
+    db.ref("rooms/"+name).set(true);
+    loadRooms();
+}
+
+// ✅ Join Room
+function joinRoom(room){
+    currentRoom = room;
+    document.getElementById("roomName").innerText = room;
+    document.getElementById("messages").innerHTML = "";
+    loadRooms();
+    fetchMessages();
+}
+
+// ✅ Load messages
+function fetchMessages(){
+    db.ref("messages/"+currentRoom).off();
+    db.ref("messages/"+currentRoom).on("child_added", s=>{
+        let data = s.val();
+        displayMessage(data.id, data.user, data.text);
+    });
+}
+
+// ✅ Display message bubble
+function displayMessage(id,user,text){
+    let div = document.createElement("div");
+    div.className = user===username ? "msg me" : "msg them";
+    div.innerText = `${user}: ${text}`;
+    
+    if(selecting){
+        div.onclick = ()=>toggleSelect(id,div);
     }
 
-    function renderTempMessages(){ chatMessages.innerHTML=""; tempMessages.forEach((m,idx)=>{if(!m) return; let cls=(m.user===userId)?"bubble-you":"bubble-friend"; addMessage((m.user===userId?"You":m.name)+": "+m.text,cls,idx,m.isImage); }); }
+    document.getElementById("messages").appendChild(div);
+    document.getElementById("messages").scrollTop = 9999999;
+}
 
-    function sendMessage(text,isImage=false){ 
-        if(!text) return; 
-        if(currentRoom==="room1"){ tempMessages.push({text,user:userId,name:userName,isImage}); renderTempMessages(); } 
-        else { let msgRef=db.ref(currentRoom).push(); msgRef.set({text,user:userId,name:userName,time:Date.now(),isImage}); } 
-        $("#msgInput").data("emojioneArea").setText('');
+// ✅ Toggle message select
+function toggleSelect(id,element){
+    if(selectedMessages.includes(id)){
+        selectedMessages = selectedMessages.filter(x=>x!==id);
+        element.style.border="none";
+    } else {
+        selectedMessages.push(id);
+        element.style.border="2px solid red";
     }
+}
 
-    function updateRooms(){
-        roomsDiv.innerHTML="";
-        groups.forEach(g=>{
-            let btn=document.createElement("button");
-            btn.className="room";
-            if(g===currentRoom) btn.classList.add("active");
-            btn.innerText=g;
-            btn.dataset.room=g;
-            btn.addEventListener("click", ()=>{
-                currentRoom=g;
-                chatTitle.innerText=g;
-                Array.from(document.querySelectorAll(".room")).forEach(b=>b.classList.remove("active"));
-                btn.classList.add("active");
-                loadMessages();
-            });
-            roomsDiv.appendChild(btn);
-        });
-    }
+// ✅ Start selecting
+function startSelect(){
+    selecting = !selecting;
+    alert(selecting ? "Tap messages to select & delete" : "Select mode off");
+    if(!selecting) deleteSelected();
+}
 
-    function loadMessages(){
-        chatMessages.innerHTML="";
-        if(currentRoom==="room1"){ renderTempMessages(); }
-        else {
-            db.ref(currentRoom).once("value",snap=>{
-                snap.forEach(child=>{
-                    let m=child.val();
-                    let cls=(m.user===userId)?"bubble-you":"bubble-friend";
-                    addMessage(m.name+": "+m.text,cls,child.key,m.isImage);
-                });
-            });
-        }
-    }
+// ✅ Delete selected
+function deleteSelected(){
+    selectedMessages.forEach(id=>{
+        db.ref("messages/"+currentRoom+"/"+id).remove();
+    });
+    selectedMessages=[];
+}
 
-    function listenMessages(){
-        groups.forEach(room=>{
-            if(room!=="room1"){
-                db.ref(room).on("child_added",snap=>{
-                    if(currentRoom===room){
-                        let m=snap.val();
-                        let cls=(m.user===userId)?"bubble-you":"bubble-friend";
-                        addMessage(m.name+": "+m.text,cls,snap.key,m.isImage);
-                    }
-                });
-            }
-        });
-    }
+// ✅ Send message
+function sendMsg(){
+    let t = inputText.value.trim();
+    if(!t) return;
 
-    // Enter Chat
-    enterChatBtn.addEventListener("click", ()=>{
-        let name = nameInputHome.value.trim(); 
-        if(!name){ alert("Enter name"); return; }
-        userName=name; 
-        homePage.style.display="none"; 
-        document.getElementById("chatApp").style.display="flex";
-        $("#msgInput").emojioneArea({ pickerPosition: "top", tonesStyle: "bullet", events: { keyup: function(editor, event){ if(event.key==='Enter'){ sendMessage($("#msgInput").data("emojioneArea").getText()); } } } });
-        updateRooms(); listenMessages();
+    let id = Date.now();
+    db.ref("messages/"+currentRoom+"/"+id).set({
+        id:id,
+        user:username,
+        text:t
     });
 
-    // Send button
-    sendBtn.addEventListener("click", ()=> sendMessage($("#msgInput").data("emojioneArea").getText()));
-
-    // Create Group
-    createGroupBtn.addEventListener("click", ()=>{
-        let name=prompt("Group name:"); if(!name)return;
-        groups.push(name); db.ref(name); updateRooms(); listenMessages();
-    });
-
-    // Delete All
-    deleteAllBtn.addEventListener("click", ()=>{
-        if(currentRoom==="room1"){ tempMessages=[]; renderTempMessages(); }
-        else { db.ref(currentRoom).remove(); chatMessages.innerHTML=""; }
-    });
-
-    // Select / Delete Selected
-    selectBtn.addEventListener("click", ()=>{
-        selecting=!selecting;
-        deleteSelectedBtn.style.display=selecting?"inline-block":"none";
-        selectBtn.innerText=selecting?"Cancel Select":"Select";
-        selectedMessages.clear();
-        Array.from(chatMessages.children).forEach(c=>c.classList.remove("selected"));
-    });
-
-    deleteSelectedBtn.addEventListener("click", ()=>{
-        selectedMessages.forEach(id=>{
-            if(currentRoom==="room1"){ tempMessages[id]=null; renderTempMessages(); }
-            else db.ref(currentRoom+"/"+id).remove();
-        });
-        selectedMessages.clear();
-    });
-
-    attachBtn.addEventListener("click", ()=>fileInput.click());
-    fileInput.addEventListener("change", ()=>{
-        let file = fileInput.files[0];
-        if(!file) return;
-        let reader = new FileReader();
-        reader.onload = function(e){ sendMessage(e.target.result,true); };
-        reader.readAsDataURL(file);
-    });
-
-});
+    inputText.value="";
+}
 </script>
+
 </body>
 </html>
