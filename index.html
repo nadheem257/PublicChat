@@ -86,7 +86,6 @@ img.chat-image {max-width:200px;border-radius:15px;margin-top:5px; cursor:pointe
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
-    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCwSqm65CoNwPc3PiVo1T40YJM2MAcg480",
       authDomain: "server-1-9fa4f.firebaseapp.com",
@@ -99,7 +98,6 @@ document.addEventListener("DOMContentLoaded", function(){
     firebase.initializeApp(firebaseConfig);
     let db = firebase.database();
 
-    // Variables
     let userId = "user-"+Math.floor(Math.random()*100000);
     let userName = "";
     let currentRoom = "room1";
@@ -108,7 +106,6 @@ document.addEventListener("DOMContentLoaded", function(){
     let selectedMessages = new Set();
     let groups = ["room1"];
 
-    // DOM
     let homePage = document.getElementById("homePage");
     let enterChatBtn = document.getElementById("enterChatBtn");
     let nameInputHome = document.getElementById("nameInputHome");
@@ -123,6 +120,7 @@ document.addEventListener("DOMContentLoaded", function(){
     let deleteAllBtn = document.getElementById("deleteAllBtn");
     let selectBtn = document.getElementById("selectBtn");
     let deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
+    let usersList = document.getElementById("usersList");
 
     function addMessage(content, cls, id=null, isImage=false){
         let div = document.createElement("div");
@@ -130,7 +128,6 @@ document.addEventListener("DOMContentLoaded", function(){
         if(id) div.dataset.id=id;
         if(isImage){ let img=document.createElement("img"); img.src=content; img.className="chat-image"; div.appendChild(img); }
         else div.innerText=content;
-
         div.addEventListener("click", ()=>{
             if(selecting && id){
                 if(div.classList.contains("selected")) { div.classList.remove("selected"); selectedMessages.delete(id); }
@@ -158,7 +155,9 @@ document.addEventListener("DOMContentLoaded", function(){
             if(g===currentRoom) btn.classList.add("active");
             btn.innerText=g;
             btn.dataset.room=g;
-            btn.addEventListener("click", ()=>{currentRoom=g; chatTitle.innerText=g; Array.from(document.querySelectorAll(".room")).forEach(b=>b.classList.remove("active")); btn.classList.add("active"); loadMessages();});
+            btn.addEventListener("click", ()=>{
+                currentRoom=g; chatTitle.innerText=g; Array.from(document.querySelectorAll(".room")).forEach(b=>b.classList.remove("active")); btn.classList.add("active"); loadMessages();
+            });
             roomsDiv.appendChild(btn);
         });
     }
@@ -191,7 +190,6 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     }
 
-    // Events
     enterChatBtn.addEventListener("click", ()=>{
         let name = nameInputHome.value.trim(); 
         if(!name){ alert("Enter name"); return; }
@@ -207,7 +205,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
     createGroupBtn.addEventListener("click", ()=>{
         let name=prompt("Group name:"); if(!name)return;
-        groups.push(name); db.ref(name); updateRooms();
+        groups.push(name); db.ref(name); updateRooms(); listenMessages();
     });
 
     deleteAllBtn.addEventListener("click", ()=>{
