@@ -53,74 +53,77 @@ input { padding:10px; margin-top:10px; font-size:16px; border-radius:5px; border
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCwSqm65CoNwPc3PiVo1T40YJM2MAcg480",
-  authDomain: "server-1-9fa4f.firebaseapp.com",
-  databaseURL: "https://server-1-9fa4f-default-rtdb.firebaseio.com",
-  projectId: "server-1-9fa4f",
-  storageBucket: "server-1-9fa4f.firebasestorage.app",
-  messagingSenderId: "1019529146427",
-  appId: "1:1019529146427:web:e22f6bbe1623b528f6ec1e"
-};
-firebase.initializeApp(firebaseConfig);
+window.onload = function() {
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwSqm65CoNwPc3PiVo1T40YJM2MAcg480",
+      authDomain: "server-1-9fa4f.firebaseapp.com",
+      databaseURL: "https://server-1-9fa4f-default-rtdb.firebaseio.com",
+      projectId: "server-1-9fa4f",
+      storageBucket: "server-1-9fa4f.firebasestorage.app",
+      messagingSenderId: "1019529146427",
+      appId: "1:1019529146427:web:e22f6bbe1623b528f6ec1e"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-let db = firebase.database();
-let room = "chat-room-1";
+    let db = firebase.database();
+    let room = "chat-room-1";
 
-let homePage = document.getElementById("homePage");
-let loginPage = document.getElementById("loginPage");
-let chatPage = document.getElementById("chatPage");
+    let homePage = document.getElementById("homePage");
+    let loginPage = document.getElementById("loginPage");
+    let chatPage = document.getElementById("chatPage");
 
-let enterChatBtn = document.getElementById("enterChatBtn");
-let loginBtn = document.getElementById("loginBtn");
-let nameInput = document.getElementById("nameInput");
-let chatMessages = document.getElementById("chatMessages");
-let msgInput = document.getElementById("msgInput");
-let sendBtn = document.getElementById("sendBtn");
+    let enterChatBtn = document.getElementById("enterChatBtn");
+    let loginBtn = document.getElementById("loginBtn");
+    let nameInput = document.getElementById("nameInput");
+    let chatMessages = document.getElementById("chatMessages");
+    let msgInput = document.getElementById("msgInput");
+    let sendBtn = document.getElementById("sendBtn");
 
-let userName = "";
-let userId = "user-" + Math.floor(Math.random()*100000);
+    let userName = "";
+    let userId = "user-" + Math.floor(Math.random()*100000);
 
-// Page transitions
-enterChatBtn.onclick = () => {
-    homePage.classList.remove("active");
-    loginPage.classList.add("active");
-};
+    // Page transitions
+    enterChatBtn.addEventListener("click", () => {
+        homePage.classList.remove("active");
+        loginPage.classList.add("active");
+    });
 
-loginBtn.onclick = () => {
-    let name = nameInput.value.trim();
-    if(!name) { alert("Please enter your name!"); return; }
-    userName = name;
-    loginPage.classList.remove("active");
-    chatPage.classList.add("active");
-    addMessage(`Welcome ${userName}!`, "message-you");
-};
+    loginBtn.addEventListener("click", () => {
+        let name = nameInput.value.trim();
+        if(!name) { alert("Please enter your name!"); return; }
+        userName = name;
+        loginPage.classList.remove("active");
+        chatPage.classList.add("active");
+        addMessage(`Welcome ${userName}!`, "message-you");
+    });
 
-// Add message helper
-function addMessage(text, cls){
-    chatMessages.innerHTML += `<div class="${cls}">${text}</div>`;
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// Send message
-sendBtn.onclick = () => {
-    let text = msgInput.value.trim();
-    if(!text) return;
-    db.ref(room).push({ text, user: userId, name: userName, time: Date.now() });
-    msgInput.value = "";
-};
-
-// Listen for messages
-db.ref(room).on("child_added", snap => {
-    let data = snap.val();
-    if(data && data.text){
-        let cls = (data.user === userId) ? "message-you" : "message-friend";
-        let displayName = (data.user === userId) ? "You" : data.name || "Friend";
-        addMessage(`${displayName}: ${data.text}`, cls);
+    // Add message helper
+    function addMessage(text, cls){
+        chatMessages.innerHTML += `<div class="${cls}">${text}</div>`;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-});
+
+    // Send message
+    sendBtn.addEventListener("click", () => {
+        let text = msgInput.value.trim();
+        if(!text) return;
+        db.ref(room).push({ text, user: userId, name: userName, time: Date.now() });
+        msgInput.value = "";
+    });
+
+    // Listen for messages
+    db.ref(room).on("child_added", snap => {
+        let data = snap.val();
+        if(data && data.text){
+            let cls = (data.user === userId) ? "message-you" : "message-friend";
+            let displayName = (data.user === userId) ? "You" : data.name || "Friend";
+            addMessage(`${displayName}: ${data.text}`, cls);
+        }
+    });
+};
 </script>
 
 </body>
 </html>
+
