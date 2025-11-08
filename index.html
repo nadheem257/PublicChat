@@ -1,59 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Super Chat</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-body{margin:0;font-family:Arial;background:#0a0f14;color:#fff;display:flex;flex-direction:column;height:100vh;}
-header{padding:15px;background:#111;border-bottom:1px solid #222;font-size:18px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
-#roomsList{padding:10px;background:#0e131a;border-right:1px solid #222;width:200px;overflow-y:auto;display:none;flex-shrink:0;}
-#chatArea{flex:1;display:flex;flex-direction:column;}
-#messages{flex:1;padding:10px;overflow-y:auto;}
-.msg{max-width:70%;margin:6px;padding:10px;border-radius:10px;display:inline-block;}
-.me{background:#1f8ef1;margin-left:auto;border-bottom-right-radius:0;}
-.them{background:#2c2f33;border-bottom-left-radius:0;}
-#inputBar{padding:10px;display:flex;gap:10px;background:#111;}
-#inputText{flex:1;padding:10px;border:none;border-radius:8px;font-size:16px;}
-button{padding:10px;border:none;border-radius:8px;background:#1f8ef1;color:white;font-size:14px;cursor:pointer;transition:.2s;}
-button:hover{opacity:0.8;}
-.roomButton{width:100%;background:#131b26;padding:12px;margin-bottom:6px;border-radius:8px;text-align:left;}
-.activeRoom{background:#1f8ef1;}
+body{margin:0;font-family:Arial;background:#0a0f14;color:#fff;height:100vh;display:flex;flex-direction:column;}
 #homeScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0f14;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:5;}
-#homeScreen input{padding:10px;width:60%;margin-top:10px;border-radius:6px;border:none;}
-.hidden{display:none;}
+#homeScreen input{padding:10px;width:60%;margin-top:10px;border-radius:6px;border:none;font-size:16px;}
+#homeScreen button{padding:12px 20px;margin-top:10px;border:none;border-radius:6px;background:#1f8ef1;color:white;font-size:16px;cursor:pointer;}
+#homeScreen button:hover{opacity:0.8;}
+#chatContainer{display:none;flex:1;flex-direction:column;}
+header{padding:15px;background:#111;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:bold;}
+#roomsList{display:none;width:200px;background:#111;overflow-y:auto;flex-shrink:0;}
+.roomButton{width:100%;padding:12px;margin:5px 0;background:#222;color:white;border:none;border-radius:6px;text-align:left;cursor:pointer;}
+.roomButton:hover{background:#1f8ef1;}
+.roomButton.activeRoom{background:#1f8ef1;}
+#mainChat{flex:1;display:flex;flex-direction:column;}
+#messages{flex:1;padding:10px;overflow-y:auto;display:flex;flex-direction:column;}
+.msg{max-width:70%;margin:5px;padding:10px;border-radius:10px;word-wrap:break-word;}
+.me{background:#1f8ef1;margin-left:auto;border-bottom-right-radius:0;color:#000;}
+.them{background:#2c2f33;margin-right:auto;border-bottom-left-radius:0;color:#fff;}
+#inputBar{display:flex;padding:10px;gap:10px;background:#111;}
+#inputBar input{flex:1;padding:10px;border-radius:6px;border:none;font-size:16px;}
+#inputBar button{padding:10px;border:none;border-radius:6px;background:#1f8ef1;color:white;cursor:pointer;}
+#inputBar button:hover{opacity:0.8;}
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- Home Screen -->
 <div id="homeScreen">
     <h2>Super Chat</h2>
-    <input type="text" id="usernameInput" placeholder="Enter your name">
-    <br>
+    <input id="usernameInput" placeholder="Enter your name">
     <button id="enterChatBtn">Enter Chat</button>
 </div>
 
-<header>
-    <span id="roomName">Public Chat</span>
-    <button id="toggleRoomsBtn">Rooms</button>
-</header>
-
-<div style="display:flex;flex:1;">
-    <div id="roomsList"></div>
-
-    <div id="chatArea">
-        <div id="messages"></div>
-
-        <div id="inputBar">
-            <button id="selectBtn">Select</button>
-            <input id="inputText" placeholder="Type a message...">
-            <button id="sendBtn">Send</button>
+<!-- Chat Container -->
+<div id="chatContainer">
+    <header>
+        <span id="currentRoomName">Public Chat</span>
+        <button id="toggleRoomsBtn">Rooms</button>
+    </header>
+    <div style="display:flex;flex:1;">
+        <div id="roomsList"></div>
+        <div id="mainChat" style="flex:1;display:flex;flex-direction:column;">
+            <div id="messages"></div>
+            <div id="inputBar">
+                <button id="selectBtn">Select</button>
+                <input id="inputText" placeholder="Type a message...">
+                <button id="sendBtn">Send</button>
+            </div>
         </div>
     </div>
 </div>
-
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -73,26 +73,30 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 let db = firebase.database();
 
-let username = "";
-let currentRoom = "Public";
-let selecting = false;
-let selectedMessages = [];
-
+// Elements
 const homeScreen = document.getElementById("homeScreen");
+const chatContainer = document.getElementById("chatContainer");
+const usernameInput = document.getElementById("usernameInput");
 const enterChatBtn = document.getElementById("enterChatBtn");
-const inputText = document.getElementById("inputText");
 const messagesDiv = document.getElementById("messages");
-const roomsList = document.getElementById("roomsList");
-const roomNameSpan = document.getElementById("roomName");
+const inputText = document.getElementById("inputText");
 const sendBtn = document.getElementById("sendBtn");
+const roomsList = document.getElementById("roomsList");
 const toggleRoomsBtn = document.getElementById("toggleRoomsBtn");
+const currentRoomName = document.getElementById("currentRoomName");
 const selectBtn = document.getElementById("selectBtn");
+
+let username="";
+let currentRoom="Public";
+let selecting=false;
+let selectedMessages=[];
 
 // ✅ Enter Chat
 enterChatBtn.addEventListener("click", ()=>{
-    username = document.getElementById("usernameInput").value.trim();
-    if(!username){ alert("Enter a name!"); return; }
-    homeScreen.classList.add("hidden");
+    username=usernameInput.value.trim();
+    if(!username){alert("Enter your name!"); return;}
+    homeScreen.style.display="none";
+    chatContainer.style.display="flex";
     loadRooms();
     joinRoom("Public");
 });
@@ -104,15 +108,20 @@ toggleRoomsBtn.addEventListener("click", ()=>{
 
 // ✅ Load Rooms
 function loadRooms(){
-    roomsList.innerHTML = "";
-    roomsList.innerHTML += `<button class="roomButton" onclick="newRoomPrompt()">+ Create Group</button>`;
-    db.ref("rooms").once("value", snap=>{
+    roomsList.innerHTML="";
+    let createBtn = document.createElement("button");
+    createBtn.innerText="+ Create Group";
+    createBtn.className="roomButton";
+    createBtn.onclick=newRoomPrompt;
+    roomsList.appendChild(createBtn);
+
+    db.ref("rooms").once("value",snap=>{
         snap.forEach(r=>{
-            let name = r.key;
-            let btn = document.createElement("button");
+            let roomName=r.key;
+            let btn=document.createElement("button");
             btn.className="roomButton";
-            btn.innerText=name;
-            btn.onclick=()=>joinRoom(name);
+            btn.innerText=roomName;
+            btn.onclick=()=>joinRoom(roomName);
             roomsList.appendChild(btn);
         });
     });
@@ -128,9 +137,9 @@ function newRoomPrompt(){
 
 // ✅ Join Room
 function joinRoom(room){
-    currentRoom = room;
-    roomNameSpan.innerText = room;
-    messagesDiv.innerHTML = "";
+    currentRoom=room;
+    currentRoomName.innerText=room;
+    messagesDiv.innerHTML="";
     loadRooms();
     fetchMessages();
 }
@@ -138,37 +147,37 @@ function joinRoom(room){
 // ✅ Fetch Messages
 function fetchMessages(){
     db.ref("messages/"+currentRoom).off();
-    db.ref("messages/"+currentRoom).on("child_added", snap=>{
-        let data = snap.val();
-        displayMessage(data.id, data.user, data.text);
+    db.ref("messages/"+currentRoom).on("child_added",snap=>{
+        let data=snap.val();
+        displayMessage(data.id,data.user,data.text);
     });
 }
 
-// ✅ Display message
+// ✅ Display Message
 function displayMessage(id,user,text){
-    let div = document.createElement("div");
-    div.className = user===username?"msg me":"msg them";
-    div.innerText = `${user}: ${text}`;
+    let div=document.createElement("div");
+    div.className=user===username?"msg me":"msg them";
+    div.innerText=`${user}: ${text}`;
     if(selecting){
         div.onclick=()=>toggleSelect(id,div);
     }
     messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = 9999999;
+    messagesDiv.scrollTop=999999;
 }
 
 // ✅ Send Message
-sendBtn.addEventListener("click", sendMsg);
-inputText.addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendMsg(); });
+sendBtn.addEventListener("click",sendMsg);
+inputText.addEventListener("keydown",(e)=>{if(e.key==="Enter") sendMsg();});
 
 function sendMsg(){
-    let t = inputText.value.trim();
+    let t=inputText.value.trim();
     if(!t) return;
-    let id = Date.now();
+    let id=Date.now();
     db.ref("messages/"+currentRoom+"/"+id).set({id:id,user:username,text:t});
     inputText.value="";
 }
 
-// ✅ Select Messages
+// ✅ Select/Delete
 selectBtn.addEventListener("click", ()=>{
     selecting=!selecting;
     alert(selecting?"Tap messages to select & delete":"Select mode off");
@@ -177,7 +186,7 @@ selectBtn.addEventListener("click", ()=>{
 
 function toggleSelect(id,el){
     if(selectedMessages.includes(id)){
-        selectedMessages = selectedMessages.filter(x=>x!==id);
+        selectedMessages=selectedMessages.filter(x=>x!==id);
         el.style.border="none";
     } else{
         selectedMessages.push(id);
