@@ -2,19 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate WhatsApp-Style Chat</title>
+<title>Ultimate WhatsApp-Style Chat Fixed</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.css"/>
 <style>
 body {margin:0;font-family:'Roboto',sans-serif;background:#ece5dd;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden;}
 #chatApp {display:none;width:95%;max-width:1400px;height:90%;background:#fff;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.2);overflow:hidden; display:flex;}
-
-/* Home Page */
 #homePage {position:absolute;top:0;left:0;width:100%;height:100%;background:#075e54;display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;}
 #homePage input, #homePage button {padding:12px; font-size:18px; border-radius:25px; border:none; margin-bottom:10px; width:300px;}
 #homePage button {background:#128c7e; color:white; cursor:pointer;}
 #homePage button:hover {background:#0af;}
-
-/* Sidebar & Buttons */
 #leftSidebar, #rightSidebar {width:250px;background:#ededed;display:flex;flex-direction:column;overflow:hidden;}
 #leftSidebar {border-right:1px solid #ccc;}
 #rightSidebar {border-left:1px solid #ccc;}
@@ -23,8 +19,6 @@ body {margin:0;font-family:'Roboto',sans-serif;background:#ece5dd;display:flex;j
 .room, #createGroupBtn, #deleteAllBtn, #selectBtn, #deleteSelectedBtn, #sendBtn, #emojiBtn, #attachBtn {border:none;border-radius:25px;background:#075e54;color:white;cursor:pointer;font-size:16px;margin:5px;padding:10px;}
 .room:hover, #createGroupBtn:hover, #deleteAllBtn:hover, #selectBtn:hover, #deleteSelectedBtn:hover, #sendBtn:hover, #emojiBtn:hover, #attachBtn:hover {background:#128c7e;}
 .room.active {background:#075e54;color:white;font-weight:bold;}
-
-/* Chat area */
 #chatArea {flex:1;display:flex;flex-direction:column;background:#f0f0f0;}
 #chatHeader {padding:15px;background:#075e54;color:white;font-size:22px;display:flex;justify-content:space-between;align-items:center;}
 #chatMessages {flex:1;padding:15px;overflow-y:auto;display:flex;flex-direction:column;}
@@ -39,7 +33,6 @@ img.chat-image {max-width:200px;border-radius:15px;margin-top:5px; cursor:pointe
 </head>
 <body>
 
-<!-- Home Page -->
 <div id="homePage">
     <h1>Welcome to Ultimate Chat!</h1>
     <input type="text" id="nameInputHome" placeholder="Enter your name...">
@@ -120,7 +113,6 @@ document.addEventListener("DOMContentLoaded", function(){
     let deleteAllBtn = document.getElementById("deleteAllBtn");
     let selectBtn = document.getElementById("selectBtn");
     let deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
-    let usersList = document.getElementById("usersList");
 
     function addMessage(content, cls, id=null, isImage=false){
         let div = document.createElement("div");
@@ -138,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function(){
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function renderTempMessages(){ chatMessages.innerHTML=""; tempMessages.forEach((m,idx)=>{let cls=(m.user===userId)?"bubble-you":"bubble-friend"; addMessage((m.user===userId?"You":m.name)+": "+m.text,cls,idx,m.isImage); }); }
+    function renderTempMessages(){ chatMessages.innerHTML=""; tempMessages.forEach((m,idx)=>{if(!m) return; let cls=(m.user===userId)?"bubble-you":"bubble-friend"; addMessage((m.user===userId?"You":m.name)+": "+m.text,cls,idx,m.isImage); }); }
 
     function sendMessage(text,isImage=false){ 
         if(!text) return; 
@@ -156,7 +148,11 @@ document.addEventListener("DOMContentLoaded", function(){
             btn.innerText=g;
             btn.dataset.room=g;
             btn.addEventListener("click", ()=>{
-                currentRoom=g; chatTitle.innerText=g; Array.from(document.querySelectorAll(".room")).forEach(b=>b.classList.remove("active")); btn.classList.add("active"); loadMessages();
+                currentRoom=g;
+                chatTitle.innerText=g;
+                Array.from(document.querySelectorAll(".room")).forEach(b=>b.classList.remove("active"));
+                btn.classList.add("active");
+                loadMessages();
             });
             roomsDiv.appendChild(btn);
         });
@@ -190,6 +186,7 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     }
 
+    // Enter Chat
     enterChatBtn.addEventListener("click", ()=>{
         let name = nameInputHome.value.trim(); 
         if(!name){ alert("Enter name"); return; }
@@ -200,19 +197,28 @@ document.addEventListener("DOMContentLoaded", function(){
         updateRooms(); listenMessages();
     });
 
+    // Send button + Enter key
     sendBtn.addEventListener("click", ()=> sendMessage($("#msgInput").data("emojioneArea").getText()));
-    msgInput.addEventListener("keypress", e=>{ if(e.key==="Enter") sendMessage($("#msgInput").data("emojioneArea").getText()); });
+    msgInput.addEventListener("keypress", function(e){
+        if(e.key==="Enter"){ 
+            e.preventDefault(); 
+            sendMessage($("#msgInput").data("emojioneArea").getText());
+        }
+    });
 
+    // Create Group
     createGroupBtn.addEventListener("click", ()=>{
         let name=prompt("Group name:"); if(!name)return;
         groups.push(name); db.ref(name); updateRooms(); listenMessages();
     });
 
+    // Delete All
     deleteAllBtn.addEventListener("click", ()=>{
         if(currentRoom==="room1"){ tempMessages=[]; renderTempMessages(); }
         else { db.ref(currentRoom).remove(); chatMessages.innerHTML=""; }
     });
 
+    // Select / Delete Selected
     selectBtn.addEventListener("click", ()=>{
         selecting=!selecting;
         deleteSelectedBtn.style.display=selecting?"inline-block":"none";
