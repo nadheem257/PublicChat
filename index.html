@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Animated Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
@@ -10,158 +11,97 @@ body {
   font-family: 'Inter', sans-serif;
   background: #05050a;
   color: white;
-  overflow: hidden;
+  overflow:hidden;
 }
 
-/* 🌌 Floating particles background */
-#bg {
-  position: fixed; inset:0;
-  background: radial-gradient(circle at center,#1c1c30, #05050a);
-  z-index:-1;
-}
+/* Background */
+#bg { position: fixed; inset:0; background: radial-gradient(circle at center,#1c1c30, #05050a); z-index:-1;}
 .particle {
-  position:absolute;
-  width:4px;height:4px;
-  background:#00ffff55;
-  border-radius:50%;
+  position:absolute; width:4px;height:4px; background:#00ffff55; border-radius:50%;
   animation: float 8s infinite ease-in-out;
 }
-@keyframes float {
-  0%{transform:translateY(0) scale(.8);}
-  50%{transform:translateY(-60px) scale(1.4);}
-  100%{transform:translateY(0) scale(.8);}
-}
+@keyframes float{0%{transform:translateY(0) scale(.8);}50%{transform:translateY(-60px) scale(1.4);}100%{transform:translateY(0) scale(.8);}}
 
-/* LOGIN SCREEN */
+/* Login screen */
 #loginScreen {
-  display:flex; flex-direction:column; 
-  height:100vh; justify-content:center; align-items:center;
-  animation:fadein .6s ease;
+  display:flex; flex-direction:column; height:100vh;
+  justify-content:center; align-items:center;
+  padding:20px;
 }
-@keyframes fadein { from{opacity:0;transform:translateY(20px);} }
-
-/* input */
 #nameInput {
   background:#0c0c14; border:2px solid #26263a;
-  padding:13px; width:300px; border-radius:10px; color:white;
-  font-size:17px; text-align:center;
-  transition:.25s;
-}
-#nameInput:focus {
-  border-color:#00eaff;
-  box-shadow:0 0 12px #00eaffaa;
+  padding:14px; width:90%; max-width:320px;
+  border-radius:10px; color:white; font-size:17px; text-align:center;
 }
 #enterBtn {
-  margin-top:15px; width:300px; padding:12px;
-  background:#00eaff; border:none; 
-  font-size:17px; cursor:pointer;
-  border-radius:10px;
-  transition:.2s;
+  margin-top:15px; width:90%; max-width:320px;
+  padding:14px; background:#00eaff; border:none;
+  font-size:17px; border-radius:10px; cursor:pointer;
 }
-#enterBtn:hover { transform:scale(1.05); background:#00fff7; }
 
-/* CHAT */
-#chatScreen {display:none; padding:20px;}
+/* Chat UI */
+#chatScreen {display:none; padding:10px; height:100vh; box-sizing:border-box;}
 #messages {
-  height:76vh; overflow-y:auto; padding:10px;
+  height:75vh; overflow-y:auto; padding:10px;
   border-radius:12px; border:1px solid #1b1b2d;
-  background:rgba(7,10,18,.85);
-  backdrop-filter: blur(14px);
-  scroll-behavior:smooth;
+  background:rgba(7,10,18,.85); backdrop-filter: blur(14px);
 }
 
-/* bubbles */
-.chat-row {display:flex; margin:10px 0; animation:msgEnter .3s ease;}
-@keyframes msgEnter {
-  from{opacity:0; transform:translateY(10px) scale(.95);}
-}
+/* Chat bubbles */
+.chat-row {display:flex; margin:8px 0;}
+.chat-bubble {padding:10px 14px; max-width:75%; border-radius:12px; font-size:15px;}
+.message-you {background:#3aff78; margin-left:auto; color:black;}
+.message-friend {background:#4da7ff; margin-right:auto;}
+.meta {font-size:11px; opacity:.8; margin-bottom:4px;}
 
-.chat-bubble {
-  padding:10px 14px; max-width:65%;
-  border-radius:12px;
-  font-size:15px; position:relative;
-  animation:pop .12s ease;
-}
-@keyframes pop {from{transform:scale(.9);}}
-
-/* Me */
-.message-you {
-  background:#3aff78;
-  margin-left:auto;
-  color:black;
-  border-bottom-right-radius:4px;
-}
-
-/* Them */
-.message-friend {
-  background:#4da7ff;
-  margin-right:auto;
-  border-bottom-left-radius:4px;
-}
-
-/* meta */
-.meta {
-  font-size:12px; opacity:.8; margin-bottom:5px;
-}
-
-/* input area */
+/* Input bar */
 .input-area {
-  display:flex; gap:8px; margin-top:12px; align-items:center;
+  display:flex; gap:6px; margin-top:6px;
+  align-items:center; padding-bottom:6px;
 }
-
 #msg {
-  flex:1; padding:11px; border:2px solid #26263a;
+  flex:1; padding:12px; border:2px solid #26263a;
   background:#0b0b15; color:white; border-radius:10px;
-  transition:.2s;
+  font-size:16px;
 }
-#msg:focus {
-  border-color:#00eaff; box-shadow:0 0 10px #00eaff88;
-}
-
 .btn {
-  width:45px; height:45px; border:none;
-  background:#1a1a2c; font-size:22px; cursor:pointer;
-  border-radius:12px;
-  transition:.2s;
+  width:42px; height:42px; border:none; background:#1a1a2c;
+  font-size:22px; border-radius:10px; cursor:pointer;
 }
-.btn:hover { transform:scale(1.12); background:#00eaff44; }
-
 #sendBtn {
-  padding:11px 16px;
-  background:#00eaff; color:black;
-  font-weight:700; border-radius:12px;
+  padding:0 16px; background:#00eaff; color:black; font-weight:700;
+  border-radius:10px;
 }
-#sendBtn:hover { transform:scale(1.06); background:#00fff6; }
 
-/* Emoji tray */
-.emoji-picker {
-  position:absolute; bottom:70px; left:10px;
-  width:260px; background:#0d0d17;
-  border:1px solid #22243b;
-  border-radius:10px; padding:6px;
-  display:none; flex-wrap:wrap; gap:6px;
-  box-shadow:0 0 15px #00eaff55;
-  animation:fade .15s ease;
+/* Emoji picker – mobile friendly */
+#picker {
+  position:fixed; bottom:70px; left:10px; right:10px;
+  background:#0d0d17; border:1px solid #22243b;
+  border-radius:10px; padding:6px; display:none;
+  flex-wrap:wrap; gap:6px; max-height:160px; overflow-y:auto;
 }
-@keyframes fade {from{opacity:0;transform:scale(.95);}}
+.emoji {cursor:pointer; font-size:22px; padding:6px;}
 
-/* emoji item */
-.emoji {
-  cursor:pointer; font-size:22px;
-  transition:.1s;
+/* 📲 Mobile adjustments */
+@media (max-width:600px) {
+  #messages {height:70vh;}
+  .btn {width:40px; height:40px; font-size:20px;}
+  #sendBtn {height:42px;}
+  .chat-bubble {max-width:85%;}
 }
-.emoji:hover { transform:scale(1.2); }
 </style>
 </head>
 <body>
 
 <div id="bg"></div>
 
+<!-- Login -->
 <div id="loginScreen">
   <input id="nameInput" placeholder="Enter your name">
   <button id="enterBtn">Enter Chat 🚀</button>
 </div>
 
+<!-- Chat -->
 <div id="chatScreen">
   <div id="messages"></div>
   <div class="input-area">
@@ -169,7 +109,7 @@ body {
     <input id="msg" placeholder="Type...">
     <button id="sendBtn">➡️</button>
   </div>
-  <div class="emoji-picker" id="picker"></div>
+  <div id="picker"></div>
 </div>
 
 <!-- Firebase -->
@@ -192,72 +132,47 @@ const room="chat-room-1";
 
 let myId="",username="";
 
-const login=document.getElementById("loginScreen");
-const chat=document.getElementById("chatScreen");
-const enterBtn=document.getElementById("enterBtn");
-const nameInput=document.getElementById("nameInput");
-const msg=document.getElementById("msg");
-const messages=document.getElementById("messages");
-const sendBtn=document.getElementById("sendBtn");
-
 enterBtn.onclick=()=>{
   username=nameInput.value.trim();
-  if(!username) return alert("Enter name");
+  if(!username) return alert("Enter your name");
   myId=username+"-"+Math.random().toString(36).slice(2,7);
-  login.style.display="none";
-  chat.style.display="block";
+  loginScreen.style.display="none";
+  chatScreen.style.display="block";
 };
 
 function send(){
   if(!msg.value.trim())return;
-  db.ref(room).push({
-    text:msg.value, user:myId,name:username,time:Date.now()
-  });
+  db.ref(room).push({text:msg.value, user:myId,name:username,time:Date.now()});
   msg.value="";
 }
 sendBtn.onclick=send;
-msg.addEventListener("keypress",e=>e.key==="Enter"&&send());
+msg.onkeypress=e=>e.key==="Enter"&&send();
 
-db.ref(room).on("child_added",snap=>{
-  const d=snap.val();
-  const isMe=d.user===myId;
-  const row=document.createElement("div");
+db.ref(room).on("child_added",s=>{
+  const d=s.val(), me=d.user===myId;
+  const row=document.createElement("div"), b=document.createElement("div");
   row.className="chat-row";
-  const bubble=document.createElement("div");
-  bubble.className="chat-bubble "+(isMe?"message-you":"message-friend");
-
-  bubble.innerHTML=
-    `<div class="meta"><b>${isMe?"You":d.name}</b> ${new Date(d.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div>`+
-    d.text;
-  row.appendChild(bubble);
-  messages.appendChild(row);
+  b.className="chat-bubble "+(me?"message-you":"message-friend");
+  b.innerHTML=`<div class="meta"><b>${me?"You":d.name}</b> ${new Date(d.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div>`+d.text;
+  row.appendChild(b); messages.appendChild(row);
   messages.scrollTop=messages.scrollHeight;
 });
 
-/* EMOJI PICKER */
+/* Emoji picker */
 const picker=document.getElementById("picker");
-const emojiBtn=document.getElementById("emojiBtn");
 const emojis="😀😃😄😁😆😅🤣😂🙂🙃😉😍😘😎🤩😭😡🔥👀💀😱🤯🤝🙏❤️💙💛💚💜⭐✨⚡💯".split("");
-
 emojis.forEach(e=>{
-  const span=document.createElement("span");
-  span.className="emoji"; span.textContent=e;
-  span.onclick=()=>{msg.value+=e;picker.style.display="none";}
-  picker.appendChild(span);
+  const s=document.createElement("span"); s.className="emoji"; s.textContent=e;
+  s.onclick=()=>{msg.value+=e;picker.style.display="none";}
+  picker.appendChild(s);
 });
-emojiBtn.onclick=()=>{
-  picker.style.display = picker.style.display==="flex" ? "none" : "flex";
-  picker.style.flexWrap="wrap";
-};
+emojiBtn.onclick=()=>picker.style.display=picker.style.display==="flex"?"none":"flex";
 
-/* PARTICLES */
+/* Particles */
 for(let i=0;i<40;i++){
-  let p=document.createElement("div");
-  p.className="particle";
-  p.style.left=Math.random()*100+"%";
-  p.style.top=Math.random()*100+"%";
-  p.style.animationDuration=(5+Math.random()*4)+"s";
-  document.getElementById("bg").appendChild(p);
+  let p=document.createElement("div"); p.className="particle";
+  p.style.left=Math.random()*100+"%"; p.style.top=Math.random()*100+"%";
+  p.style.animationDuration=(5+Math.random()*4)+"s"; bg.appendChild(p);
 }
 </script>
 </body>
