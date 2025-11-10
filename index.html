@@ -1,120 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Animated Chat</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta charset="UTF-8">
+<title>Chatables</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.css"/>
 <style>
 body {
-  margin:0; padding:0;
-  font-family: 'Inter', sans-serif;
-  background: #05050a;
-  color: white;
-  overflow:hidden;
+  margin:0; font-family:'Inter',sans-serif; background:#05050a; color:white; overflow:hidden;
 }
+#bg { position:fixed; inset:0; background:#05050a; z-index:-1; }
+.particle { position:absolute; width:8px;height:8px; background:#00ffff88; border-radius:50%; animation:float 6s infinite ease-in-out; }
+@keyframes float { 0%{transform:translateY(0) scale(.8);} 50%{transform:translateY(-80px) scale(1.5);} 100%{transform:translateY(0) scale(.8);} }
 
-/* Background */
-#bg { position: fixed; inset:0; background: radial-gradient(circle at center,#1c1c30, #05050a); z-index:-1;}
-.particle {
-  position:absolute; width:4px;height:4px; background:#00ffff55; border-radius:50%;
-  animation: float 8s infinite ease-in-out;
-}
-@keyframes float{0%{transform:translateY(0) scale(.8);}50%{transform:translateY(-60px) scale(1.4);}100%{transform:translateY(0) scale(.8);}}
+#loginScreen { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; animation:fadein .6s ease; }
+@keyframes fadein { from{opacity:0;transform:translateY(20px);} }
 
-/* Login screen */
-#loginScreen {
-  display:flex; flex-direction:column; height:100vh;
-  justify-content:center; align-items:center;
-  padding:20px;
-}
-#nameInput {
-  background:#0c0c14; border:2px solid #26263a;
-  padding:14px; width:90%; max-width:320px;
-  border-radius:10px; color:white; font-size:17px; text-align:center;
-}
-#enterBtn {
-  margin-top:15px; width:90%; max-width:320px;
-  padding:14px; background:#00eaff; border:none;
-  font-size:17px; border-radius:10px; cursor:pointer;
-}
+#nameInput { background:#0c0c14; border:2px solid #26263a; padding:13px; width:300px; border-radius:10px; color:white; font-size:17px; text-align:center; transition:.25s; }
+#nameInput:focus { border-color:#00eaff; box-shadow:0 0 12px #00eaffaa; }
 
-/* Chat UI */
-#chatScreen {display:none; padding:10px; height:100vh; box-sizing:border-box;}
-#messages {
-  height:75vh; overflow-y:auto; padding:10px;
-  border-radius:12px; border:1px solid #1b1b2d;
-  background:rgba(7,10,18,.85); backdrop-filter: blur(14px);
-}
+#enterBtn { margin-top:15px; width:300px; padding:12px; background:#00eaff; border:none; font-size:17px; cursor:pointer; border-radius:10px; transition:.2s; }
+#enterBtn:hover { transform:scale(1.05); background:#00fff7; }
 
-/* Chat bubbles */
-.chat-row {display:flex; margin:8px 0;}
-.chat-bubble {padding:10px 14px; max-width:75%; border-radius:12px; font-size:15px;}
-.message-you {background:#3aff78; margin-left:auto; color:black;}
-.message-friend {background:#4da7ff; margin-right:auto;}
-.meta {font-size:11px; opacity:.8; margin-bottom:4px;}
+#chatScreen { display:none; flex-direction:column; padding:20px; height:100vh; box-sizing:border-box; }
+#messages { flex:1; overflow-y:auto; padding:10px; border-radius:12px; border:1px solid #1b1b2d; background:rgba(7,10,18,.85); backdrop-filter:blur(14px); scroll-behavior:smooth; }
+.chat-row { display:flex; margin:10px 0; animation:msgEnter .3s ease; }
+@keyframes msgEnter { from{opacity:0; transform:translateY(10px) scale(.95);} }
+.chat-bubble { padding:10px 14px; max-width:65%; border-radius:12px; font-size:15px; word-wrap:break-word; animation:pop .12s ease; }
+@keyframes pop {from{transform:scale(.9);} }
+.message-you { background:#3aff78; margin-left:auto; color:black; border-bottom-right-radius:4px; }
+.message-friend { background:#4da7ff; margin-right:auto; color:white; border-bottom-left-radius:4px; }
+.meta { font-size:12px; opacity:.8; margin-bottom:5px; }
 
-/* Input bar */
-.input-area {
-  display:flex; gap:6px; margin-top:6px;
-  align-items:center; padding-bottom:6px;
-}
-#msg {
-  flex:1; padding:12px; border:2px solid #26263a;
-  background:#0b0b15; color:white; border-radius:10px;
-  font-size:16px;
-}
-.btn {
-  width:42px; height:42px; border:none; background:#1a1a2c;
-  font-size:22px; border-radius:10px; cursor:pointer;
-}
-#sendBtn {
-  padding:0 16px; background:#00eaff; color:black; font-weight:700;
+.input-area { display:flex; gap:8px; margin-top:12px; align-items:center; position:relative; }
+#msg { flex:1; padding:11px; border:2px solid #26263a; background:#0b0b15; color:white; border-radius:10px; transition:.2s; }
+#msg:focus { border-color:#00eaff; box-shadow:0 0 10px #00eaff88; }
+#sendBtn { padding:11px 16px; background:#00eaff; color:black; font-weight:700; border-radius:12px; cursor:pointer; transition:.2s; }
+#sendBtn:hover { transform:scale(1.06); background:#00fff6; }
+
+.emoji-picker { position:absolute; bottom:70px; right:10px; width:260px; background:#0d0d17; border:1px solid #22243b; border-radius:10px; padding:6px; display:none; flex-wrap:wrap; gap:6px; box-shadow:0 0 15px #00eaff55; animation:fade .15s ease; }
+@keyframes fade {from{opacity:0; transform:scale(.95);} }
+.emoji { cursor:pointer; font-size:22px; transition:.1s; }
+.emoji:hover { transform:scale(1.2); }
+
+#onlineUsers {
+  margin-top:10px;
+  padding:8px;
+  background:rgba(0,255,255,0.1);
   border-radius:10px;
+  font-size:14px;
 }
-
-/* Emoji picker – mobile friendly */
-#picker {
-  position:fixed; bottom:70px; left:10px; right:10px;
-  background:#0d0d17; border:1px solid #22243b;
-  border-radius:10px; padding:6px; display:none;
-  flex-wrap:wrap; gap:6px; max-height:160px; overflow-y:auto;
+.online-user {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:3px 0;
+  padding:3px 6px;
+  border-radius:6px;
+  transition:.2s;
 }
-.emoji {cursor:pointer; font-size:22px; padding:6px;}
+.online-user.self { background:#00ff9f44; font-weight:bold; }
+.online-user:hover { background:#00eaff33; transform:scale(1.05);}
+.online-dot { width:8px; height:8px; border-radius:50%; background:#0f0; }
 
-/* 📲 Mobile adjustments */
-@media (max-width:600px) {
-  #messages {height:70vh;}
-  .btn {width:40px; height:40px; font-size:20px;}
-  #sendBtn {height:42px;}
-  .chat-bubble {max-width:85%;}
+#typingIndicator {
+  font-size:16px;
+  color:#0ff;
+  margin-top:4px;
+  min-height:20px;
+  font-style:italic;
+  font-weight:bold;
+  text-shadow:0 0 6px #0ff;
 }
 </style>
 </head>
 <body>
-
 <div id="bg"></div>
 
-<!-- Login -->
+<!-- LOGIN -->
 <div id="loginScreen">
   <input id="nameInput" placeholder="Enter your name">
   <button id="enterBtn">Enter Chat 🚀</button>
 </div>
 
-<!-- Chat -->
+<!-- CHAT -->
 <div id="chatScreen">
   <div id="messages"></div>
+  <div id="typingIndicator"></div>
   <div class="input-area">
-    <button class="btn" id="emojiBtn">😊</button>
-    <input id="msg" placeholder="Type...">
-    <button id="sendBtn">➡️</button>
+    <input id="msg" placeholder="Type a message...">
+    <button id="sendBtn">Send</button>
   </div>
-  <div id="picker"></div>
+  <div class="emoji-picker" id="picker"></div>
+  <div id="onlineUsers"></div>
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -128,52 +111,120 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
-const room="chat-room-1";
 
-let myId="",username="";
+let userId="",username="",typingTimeout;
 
-enterBtn.onclick=()=>{
-  username=nameInput.value.trim();
-  if(!username) return alert("Enter your name");
-  myId=username+"-"+Math.random().toString(36).slice(2,7);
-  loginScreen.style.display="none";
-  chatScreen.style.display="block";
-};
-
-function send(){
-  if(!msg.value.trim())return;
-  db.ref(room).push({text:msg.value, user:myId,name:username,time:Date.now()});
-  msg.value="";
-}
-sendBtn.onclick=send;
-msg.onkeypress=e=>e.key==="Enter"&&send();
-
-db.ref(room).on("child_added",s=>{
-  const d=s.val(), me=d.user===myId;
-  const row=document.createElement("div"), b=document.createElement("div");
-  row.className="chat-row";
-  b.className="chat-bubble "+(me?"message-you":"message-friend");
-  b.innerHTML=`<div class="meta"><b>${me?"You":d.name}</b> ${new Date(d.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div>`+d.text;
-  row.appendChild(b); messages.appendChild(row);
-  messages.scrollTop=messages.scrollHeight;
-});
-
-/* Emoji picker */
+const login=document.getElementById("loginScreen");
+const chat=document.getElementById("chatScreen");
+const enterBtn=document.getElementById("enterBtn");
+const nameInput=document.getElementById("nameInput");
+const msg=document.getElementById("msg");
+const sendBtn=document.getElementById("sendBtn");
+const messages=document.getElementById("messages");
 const picker=document.getElementById("picker");
+const onlineUsers=document.getElementById("onlineUsers");
+const typingIndicator=document.getElementById("typingIndicator");
+
+function enterChat(){
+  username=nameInput.value.trim();
+  if(!username) return alert("Enter name");
+  userId=username+"-"+Math.random().toString(36).slice(2,7);
+  login.style.display="none";
+  chat.style.display="flex";
+
+  const onlineRef = db.ref("chatables-online/"+userId);
+  onlineRef.set({name:username});
+  onlineRef.onDisconnect().remove();
+
+  listenOnlineUsers();
+  listenMessages();
+  setupEmoji();
+}
+
+// Keyboard Enter to login
+nameInput.addEventListener("keypress", e=>{if(e.key==="Enter") enterChat();});
+enterBtn.onclick=enterChat;
+
+// Send message
+function sendMessage(){
+  const text=$("#msg").data("emojioneArea").getText().trim();
+  if(!text) return;
+  db.ref("chatables-temp").push({text,user:userId,name:username,time:Date.now()});
+  $("#msg").data("emojioneArea").setText('');
+  db.ref("chatables-typing/"+userId).remove();
+}
+
+// Setup emoji + typing
+function setupEmoji(){
+  $(msg).emojioneArea({ pickerPosition:"top", tonesStyle:"bullet", events: {
+    keyup: function(editor, event){
+      if(event.key==="Enter") sendMessage();
+      if(event.key!=="Enter"){
+        db.ref("chatables-typing/"+userId).set({name:username});
+        clearTimeout(typingTimeout);
+        typingTimeout=setTimeout(()=> db.ref("chatables-typing/"+userId).remove(),1000);
+      }
+    }
+  }});
+}
+
+// Listen messages
+function listenMessages(){
+  db.ref("chatables-temp").on("child_added", snap=>{
+    const d = snap.val(); if(!d) return;
+    const isMe = d.user===userId;
+    const row=document.createElement("div"); row.className="chat-row";
+    const bubble=document.createElement("div"); bubble.className="chat-bubble "+(isMe?"message-you":"message-friend");
+    bubble.innerHTML=`<div class="meta"><b>${isMe?"You":d.name}</b> ${new Date(d.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div>`+d.text;
+    row.appendChild(bubble);
+    messages.appendChild(row);
+    messages.scrollTop=messages.scrollHeight;
+  });
+
+  db.ref("chatables-typing").on("value", snap=>{
+    const val = snap.val()||{};
+    let names = Object.values(val).map(u=>u.name).filter(n=>n!==username);
+    typingIndicator.innerText = names.length>0 ? names.join(", ")+" is typing..." : "";
+  });
+}
+
+// Listen online users
+function listenOnlineUsers(){
+  db.ref("chatables-online").on("value", snap=>{
+    let val = snap.val()||{};
+    onlineUsers.innerHTML="";
+    let onlineCount = Object.keys(val).length;
+    if(onlineCount===0) db.ref("chatables-temp").remove(); // delete messages only if no one online
+    Object.keys(val).forEach(uid=>{
+      let div=document.createElement("div");
+      div.className = "online-user"+(uid===userId?" self":"");
+      div.innerHTML = `<div class="online-dot"></div>${val[uid].name}`;
+      onlineUsers.appendChild(div);
+    });
+  });
+}
+
+// Send button
+sendBtn.onclick=sendMessage;
+
+// Particles
+for(let i=0;i<40;i++){
+  let p=document.createElement("div");
+  p.className="particle";
+  p.style.left=Math.random()*100+"%";
+  p.style.top=Math.random()*100+"%";
+  p.style.animationDuration=(5+Math.random()*3)+"s";
+  document.getElementById("bg").appendChild(p);
+}
+
+// Emoji picker
 const emojis="😀😃😄😁😆😅🤣😂🙂🙃😉😍😘😎🤩😭😡🔥👀💀😱🤯🤝🙏❤️💙💛💚💜⭐✨⚡💯".split("");
 emojis.forEach(e=>{
-  const s=document.createElement("span"); s.className="emoji"; s.textContent=e;
-  s.onclick=()=>{msg.value+=e;picker.style.display="none";}
-  picker.appendChild(s);
+  const span=document.createElement("span");
+  span.className="emoji"; span.innerText=e;
+  span.onclick=()=>{ $("#msg").data("emojioneArea").setText($("#msg").data("emojioneArea").getText()+e); };
+  picker.appendChild(span);
 });
-emojiBtn.onclick=()=>picker.style.display=picker.style.display==="flex"?"none":"flex";
-
-/* Particles */
-for(let i=0;i<40;i++){
-  let p=document.createElement("div"); p.className="particle";
-  p.style.left=Math.random()*100+"%"; p.style.top=Math.random()*100+"%";
-  p.style.animationDuration=(5+Math.random()*4)+"s"; bg.appendChild(p);
-}
 </script>
 </body>
 </html>
