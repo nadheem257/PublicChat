@@ -15,17 +15,17 @@ body {
 }
 
 /* Background */
-#bg { position: fixed; inset:0; background: radial-gradient(circle at center,#1c1c30, #05050a); z-index:-1;}
+#bg {position: fixed; inset:0; background: radial-gradient(circle at center,#1c1c30,#05050a); z-index:-1;}
 .particle {
   position:absolute; width:4px;height:4px; background:#00ffff55; border-radius:50%;
   animation: float 8s infinite ease-in-out;
 }
 @keyframes float{0%{transform:translateY(0) scale(.8);}50%{transform:translateY(-60px) scale(1.4);}100%{transform:translateY(0) scale(.8);}}
 
-/* Login screen */
+/* Login */
 #loginScreen {
-  display:flex; flex-direction:column; height:100vh;
-  justify-content:center; align-items:center;
+  display:flex; flex-direction:column;
+  height:100vh; justify-content:center; align-items:center;
   padding:20px;
 }
 #nameInput {
@@ -35,26 +35,26 @@ body {
 }
 #enterBtn {
   margin-top:15px; width:90%; max-width:320px;
-  padding:14px; background:#00eaff; border:none;
+  padding:14px; background:#00eaff;
   font-size:17px; border-radius:10px; cursor:pointer;
 }
 
-/* Chat UI */
+/* Chat */
 #chatScreen {display:none; padding:10px; height:100vh; box-sizing:border-box;}
 #messages {
   height:75vh; overflow-y:auto; padding:10px;
   border-radius:12px; border:1px solid #1b1b2d;
-  background:rgba(7,10,18,.85); backdrop-filter: blur(14px);
+  background:rgba(7,10,18,.85); backdrop-filter:blur(14px);
 }
 
-/* Chat bubbles */
+/* Bubbles */
 .chat-row {display:flex; margin:8px 0;}
 .chat-bubble {padding:10px 14px; max-width:75%; border-radius:12px; font-size:15px;}
 .message-you {background:#3aff78; margin-left:auto; color:black;}
 .message-friend {background:#4da7ff; margin-right:auto;}
-.meta {font-size:11px; opacity:.8; margin-bottom:4px;}
+.meta {font-size:11px; opacity:.8; margin-bottom:3px;}
 
-/* Input bar */
+/* Input */
 .input-area {
   display:flex; gap:6px; margin-top:6px;
   align-items:center; padding-bottom:6px;
@@ -65,15 +65,15 @@ body {
   font-size:16px;
 }
 .btn {
-  width:42px; height:42px; border:none; background:#1a1a2c;
-  font-size:22px; border-radius:10px; cursor:pointer;
+  width:42px; height:42px; border:none;
+  background:#1a1a2c; font-size:22px; border-radius:10px; cursor:pointer;
 }
 #sendBtn {
   padding:0 16px; background:#00eaff; color:black; font-weight:700;
   border-radius:10px;
 }
 
-/* Emoji picker – mobile friendly */
+/* Emoji */
 #picker {
   position:fixed; bottom:70px; left:10px; right:10px;
   background:#0d0d17; border:1px solid #22243b;
@@ -82,12 +82,20 @@ body {
 }
 .emoji {cursor:pointer; font-size:22px; padding:6px;}
 
-/* 📲 Mobile adjustments */
+/* 📱 Mobile fix — lift input bar */
 @media (max-width:600px) {
-  #messages {height:70vh;}
-  .btn {width:40px; height:40px; font-size:20px;}
-  #sendBtn {height:42px;}
-  .chat-bubble {max-width:85%;}
+  #messages {
+    height: calc(100vh - 165px); /* more space above keyboard */
+  }
+
+  .input-area {
+    margin-bottom: 18px;
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+  }
+
+  #picker {
+    bottom: 120px; /* moved higher */
+  }
 }
 </style>
 </head>
@@ -95,13 +103,11 @@ body {
 
 <div id="bg"></div>
 
-<!-- Login -->
 <div id="loginScreen">
   <input id="nameInput" placeholder="Enter your name">
   <button id="enterBtn">Enter Chat 🚀</button>
 </div>
 
-<!-- Chat -->
 <div id="chatScreen">
   <div id="messages"></div>
   <div class="input-area">
@@ -134,7 +140,7 @@ let myId="",username="";
 
 enterBtn.onclick=()=>{
   username=nameInput.value.trim();
-  if(!username) return alert("Enter your name");
+  if(!username)return alert("Enter your name");
   myId=username+"-"+Math.random().toString(36).slice(2,7);
   loginScreen.style.display="none";
   chatScreen.style.display="block";
@@ -142,28 +148,28 @@ enterBtn.onclick=()=>{
 
 function send(){
   if(!msg.value.trim())return;
-  db.ref(room).push({text:msg.value, user:myId,name:username,time:Date.now()});
+  db.ref(room).push({text:msg.value,user:myId,name:username,time:Date.now()});
   msg.value="";
 }
 sendBtn.onclick=send;
-msg.onkeypress=e=>e.key==="Enter"&&send();
+msg.addEventListener("keypress",e=>e.key==="Enter"&&send());
 
 db.ref(room).on("child_added",s=>{
-  const d=s.val(), me=d.user===myId;
-  const row=document.createElement("div"), b=document.createElement("div");
+  const d=s.val(),me=d.user===myId;
+  const row=document.createElement("div"),b=document.createElement("div");
   row.className="chat-row";
   b.className="chat-bubble "+(me?"message-you":"message-friend");
-  b.innerHTML=`<div class="meta"><b>${me?"You":d.name}</b> ${new Date(d.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div>`+d.text;
+  b.innerHTML=`<div class="meta"><b>${me?"You":d.name}</b> ${new Date(d.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div>${d.text}`;
   row.appendChild(b); messages.appendChild(row);
   messages.scrollTop=messages.scrollHeight;
 });
 
-/* Emoji picker */
+/* Emojis */
 const picker=document.getElementById("picker");
 const emojis="😀😃😄😁😆😅🤣😂🙂🙃😉😍😘😎🤩😭😡🔥👀💀😱🤯🤝🙏❤️💙💛💚💜⭐✨⚡💯".split("");
 emojis.forEach(e=>{
   const s=document.createElement("span"); s.className="emoji"; s.textContent=e;
-  s.onclick=()=>{msg.value+=e;picker.style.display="none";}
+  s.onclick=()=>{msg.value+=e;picker.style.display="none";};
   picker.appendChild(s);
 });
 emojiBtn.onclick=()=>picker.style.display=picker.style.display==="flex"?"none":"flex";
