@@ -2,18 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Chatables</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chatables with Custom Cursor</title>
+
+<!-- EmojiOneArea CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.css">
+
 <style>
-body { margin:0; font-family:'Inter',sans-serif; background:#05050a; color:white; overflow:hidden; }
+/* ---------------- Chatables Styles ---------------- */
+body {
+  margin: 0;
+  font-family:'Inter',sans-serif;
+  background:#05050a;
+  color:white;
+  overflow:hidden;
+  cursor: none; /* hide default cursor */
+}
 *{box-sizing:border-box;}
-#bg{position:fixed; inset:0; background:linear-gradient(270deg,#05050a,#0a0c1a,#05050a); background-size:600% 600%; animation:bgcolors 20s ease infinite; z-index:-1;}
+#bg{
+  position:fixed; inset:0;
+  background:linear-gradient(270deg,#05050a,#0a0c1a,#05050a);
+  background-size:600% 600%;
+  animation:bgcolors 20s ease infinite;
+  z-index:-1;
+}
 @keyframes bgcolors{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
-.particle{position:absolute;width:7px;height:7px;background:#00ffffdd;border-radius:50%;box-shadow:0 0 5px #00ffffcc,0 0 18px #00eaffcc,0 0 40px #00c8ff99;animation:float 8s ease-in-out infinite; opacity:.85;}
+.particle{position:absolute;width:7px;height:7px;background:#00ffffdd;border-radius:50%;
+box-shadow:0 0 5px #00ffffcc,0 0 18px #00eaffcc,0 0 40px #00c8ff99;
+animation:float 8s ease-in-out infinite; opacity:.85;}
 @keyframes float{0%{transform:translateY(0) scale(.75);}50%{transform:translateY(-120px) scale(1.7);}100%{transform:translateY(0) scale(.75);}}
 .screen { display: none; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 10px; animation:fadein 1.2s ease forwards; background:rgba(0,224,255,0.04); backdrop-filter:blur(24px); box-shadow: inset 0 0 130px #00eaff77; border-radius:15px; }
 #loginChoice { display:flex; gap:20px; flex-direction: column; align-items:center; }
-@keyframes fadein{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadein{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
 .title{font-size:42px;font-weight:900;color:#00eaff;text-shadow:0 0 30px #00eaff;padding-bottom:18px;animation:neonFlicker 2s infinite;}
 @keyframes neonFlicker{0%,100%{opacity:1;}50%{opacity:.75;}}
 input,button{font-family:'Inter',sans-serif;border-radius:10px;outline:none;border:none;padding:12px 16px;font-size:16px;}
@@ -44,47 +64,80 @@ button:hover{transform:scale(1.15);box-shadow:0 0 90px #00fff7ee;}
 .online-dot{width:12px;height:12px;border-radius:50%;background:#0f0;box-shadow:0 0 10px #0f0aa;animation:pulseDot 1.5s infinite;}
 @keyframes popOnline{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
 @keyframes pulseDot{0%,100%{transform:scale(0.85);}50%{transform:scale(1.3);}}
+.info-link { margin-top:10px; font-size:13px; color:#00eaff; cursor:pointer; text-decoration:underline; }
+.info-link:hover { color:#00ffaa; }
+
+/* ---------------- Custom Cursor Styles ---------------- */
+.cursor-target { padding: 14px 20px; user-select: none; cursor:pointer; border: 3px solid transparent; position: relative; transition: background 0.3s, border-color 0.3s; }
+.target-cursor-wrapper { position: fixed; top:0; left:0; width:0; height:0; pointer-events:none; z-index:9999; mix-blend-mode:difference; transform:translate(-50%, -50%); }
+.target-cursor-dot { position:absolute; left:50%; top:50%; width:4px; height:4px; background:#fff; border-radius:50%; transform:translate(-50%, -50%); will-change:transform; }
+.target-cursor-corner { position:absolute; left:50%; top:50%; width:12px; height:12px; border:3px solid #fff; background:transparent; will-change:transform; box-sizing:border-box; }
+.corner-tl { transform:translate(-150%, -150%); border-right:none; border-bottom:none; }
+.corner-tr { transform:translate(50%, -150%); border-left:none; border-bottom:none; }
+.corner-br { transform:translate(50%, 50%); border-left:none; border-top:none; }
+.corner-bl { transform:translate(-150%, 50%); border-right:none; border-top:none; }
 </style>
 </head>
+
 <body>
 <div id="bg"></div>
 
+<!-- ---------------- Screens ---------------- -->
 <div id="loginChoice" class="screen">
   <div class="title">CHATABLES</div>
-  <button id="privateBtn">Private Chat Login</button>
-  <button id="publicBtn">Public Chat</button>
+  <button id="privateBtn" class="cursor-target">Private Chat Login</button>
+  <button id="publicBtn" class="cursor-target">Public Chat</button>
 </div>
 
 <div id="loginScreen" class="screen">
   <div class="title">CHATABLES</div>
-  <input id="username" placeholder="Username">
-  <input id="password" placeholder="Password" type="password">
-  <button id="loginPrivateBtn">Enter Chat 🚀</button>
+  <input id="username" placeholder="Username" class="cursor-target">
+  <input id="password" placeholder="Password" type="password" class="cursor-target">
+  <button id="loginPrivateBtn" class="cursor-target">Enter Chat 🚀</button>
+  <div class="info-link cursor-target" onclick="showInfo()">Need a personal account?</div>
+</div>
+
+<div id="infoScreen" class="screen" style="display:none; text-align:center; padding:20px;">
+  <div class="title">Personal Account Info</div>
+  <p>If you need a personal account to chat, you must ask the admin in person. Only IISS members can get an account.</p>
+  <button onclick="backToLogin()" class="cursor-target">Back</button>
 </div>
 
 <div id="publicScreen" class="screen">
   <div class="title">CHATABLES</div>
-  <input id="publicName" placeholder="Enter your name">
-  <button id="loginPublicBtn">Enter Chat 🚀</button>
+  <input id="publicName" placeholder="Enter your name" class="cursor-target">
+  <button id="loginPublicBtn" class="cursor-target">Enter Chat 🚀</button>
 </div>
 
 <div id="chatScreen">
   <div class="title">CHATABLES</div>
   <div id="messages"></div>
   <div class="input-area">
-    <input id="msg" placeholder="Type a message...">
-    <button id="sendBtn">Send</button>
+    <input id="msg" placeholder="Type a message..." class="cursor-target">
+    <button id="sendBtn" class="cursor-target">Send</button>
   </div>
-  <button id="clearBtn">Clear Chat</button>
+  <button id="clearBtn" class="cursor-target">Clear Chat</button>
   <div id="onlineUsers"></div>
 </div>
 
+<!-- ---------------- Custom Cursor HTML ---------------- -->
+<div class="target-cursor-wrapper">
+  <div class="target-cursor-dot"></div>
+  <div class="target-cursor-corner corner-tl"></div>
+  <div class="target-cursor-corner corner-tr"></div>
+  <div class="target-cursor-corner corner-br"></div>
+  <div class="target-cursor-corner corner-bl"></div>
+</div>
+
+<!-- ---------------- Scripts ---------------- -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.js"></script>
 
 <script>
+// ---------------- Firebase Chat ----------------
 firebase.initializeApp({
   apiKey:"AIzaSyCwSqm65CoNwPc3PiVo1T40YJM2MAcg480",
   authDomain:"server-1-9fa4f.firebaseapp.com",
@@ -101,8 +154,12 @@ const validUsers={"Fdr_Hid":"Nadheem2011","_Ash_":"Ash2011","NobodyCanBeatMe":"J
 
 const loginChoice=document.getElementById("loginChoice");
 const loginScreen=document.getElementById("loginScreen");
+const infoScreen=document.getElementById("infoScreen");
 const publicScreen=document.getElementById("publicScreen");
 const chat=document.getElementById("chatScreen");
+
+function showInfo(){ loginScreen.style.display="none"; infoScreen.style.display="flex"; }
+function backToLogin(){ infoScreen.style.display="none"; loginScreen.style.display="flex"; }
 
 document.getElementById("privateBtn").onclick=()=>{loginChoice.style.display="none"; loginScreen.style.display="flex";}
 document.getElementById("publicBtn").onclick=()=>{loginChoice.style.display="none"; publicScreen.style.display="flex";}
@@ -182,12 +239,104 @@ document.getElementById("clearBtn").onclick=()=>{
   }
 }
 
+// Background particles
 for(let i=0;i<100;i++){
   const p=document.createElement("div"); p.className="particle"; 
   p.style.left=Math.random()*100+"%"; p.style.top=Math.random()*100+"%"; 
   p.style.animationDuration=(6+Math.random()*5)+"s"; p.style.animationDelay=(Math.random()*7)+"s"; 
   document.body.appendChild(p);
 }
+
+// ---------------- Custom Cursor Script ----------------
+(() => {
+  const cursor = document.querySelector('.target-cursor-wrapper');
+  const dot = cursor.querySelector('.target-cursor-dot');
+  const corners = Array.from(cursor.querySelectorAll('.target-cursor-corner'));
+
+  const cornerSize = 12;
+  const borderWidth = 3;
+  const baseTransforms = [
+    { x: -1.5 * cornerSize, y: -1.5 * cornerSize },
+    { x: 0.5 * cornerSize, y: -1.5 * cornerSize },
+    { x: 0.5 * cornerSize, y: 0.5 * cornerSize },
+    { x: -1.5 * cornerSize, y: 0.5 * cornerSize }
+  ];
+
+  let cursorPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  let activeTarget = null;
+  let targetCorners = null;
+  let activeStrength = { current: 0 };
+  let isActive = false;
+
+  gsap.set(cursor, { x: cursorPos.x, y: cursorPos.y, xPercent: -50, yPercent: -50 });
+  corners.forEach((c, i) => gsap.set(c, baseTransforms[i]));
+  gsap.set(dot, { scale: 1 });
+
+  let spinTl = gsap.timeline({ repeat: -1, defaults: { ease: 'none' } })
+    .to(cursor, { rotation: '+=360', duration: 2 });
+
+  window.addEventListener('mousemove', e => {
+    cursorPos.x = e.clientX; cursorPos.y = e.clientY;
+    gsap.to(cursor, { x: cursorPos.x, y: cursorPos.y, duration: 0.1, ease: 'power3.out' });
+    if (isActive) updateCorners(e.clientX, e.clientY);
+  });
+
+  window.addEventListener('mousedown', () => {
+    gsap.to(dot, { scale: 0.7, duration: 0.2 });
+    gsap.to(cursor, { scale: 0.9, duration: 0.2 });
+  });
+  window.addEventListener('mouseup', () => {
+    gsap.to(dot, { scale: 1, duration: 0.2 });
+    gsap.to(cursor, { scale: 1, duration: 0.2 });
+  });
+
+  function updateCorners(mouseX, mouseY){
+    if(!isActive||!targetCorners) return;
+    const strength = activeStrength.current;
+    corners.forEach((corner, i)=>{
+      const targetX = targetCorners[i].x - mouseX + baseTransforms[i].x;
+      const targetY = targetCorners[i].y - mouseY + baseTransforms[i].y;
+      const currentX = gsap.getProperty(corner,'x');
+      const currentY = gsap.getProperty(corner,'y');
+      gsap.set(corner,{ x: currentX + (targetX-currentX)*strength, y: currentY + (targetY-currentY)*strength });
+    });
+  }
+
+  function cleanupTarget(target){ if(target) target.removeEventListener('mouseleave', onLeave); }
+
+  function onLeave(){
+    isActive=false; targetCorners=null;
+    gsap.to(activeStrength,{ current:0, duration:0.2, ease:'power2.out' });
+    cleanupTarget(activeTarget); activeTarget=null;
+    corners.forEach((corner,i)=>{ gsap.to(corner,{ x: baseTransforms[i].x, y: baseTransforms[i].y, duration:0.3, ease:'power3.out' }); });
+    const currentRotation = gsap.getProperty(cursor,'rotation') % 360;
+    spinTl.kill();
+    spinTl = gsap.timeline({ repeat:-1, defaults:{ease:'none'} });
+    spinTl.to(cursor,{ rotation: currentRotation + 360, duration: 2 * (1 - currentRotation/360) });
+    spinTl.to(cursor,{ rotation: '+=360', duration:2, repeat:-1 });
+  }
+
+  document.querySelectorAll('.cursor-target').forEach(target=>{
+    target.addEventListener('mouseenter', ()=>{
+      if(activeTarget===target) return;
+      activeTarget=target; isActive=true;
+      const rect=target.getBoundingClientRect();
+      targetCorners=[
+        { x: rect.left - borderWidth, y: rect.top - borderWidth },
+        { x: rect.right + borderWidth - cornerSize, y: rect.top - borderWidth },
+        { x: rect.right + borderWidth - cornerSize, y: rect.bottom + borderWidth - cornerSize },
+        { x: rect.left - borderWidth, y: rect.bottom + borderWidth - cornerSize }
+      ];
+      gsap.killTweensOf(corners);
+      spinTl.pause();
+      gsap.set(cursor,{ rotation:0 });
+      gsap.to(activeStrength,{ current:1, duration:0.2, ease:'power2.out' });
+      const cursorX = gsap.getProperty(cursor,'x'); const cursorY = gsap.getProperty(cursor,'y');
+      corners.forEach((corner,i)=>{ gsap.to(corner,{ x: targetCorners[i].x - cursorX + baseTransforms[i].x, y: targetCorners[i].y - cursorY + baseTransforms[i].y, duration:0.2, ease:'power2.out' }); });
+      target.addEventListener('mouseleave', onLeave);
+    });
+  });
+})();
 </script>
 </body>
 </html>
