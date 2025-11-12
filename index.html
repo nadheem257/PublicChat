@@ -7,6 +7,8 @@
 
 <!-- EmojiOneArea CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojionearea/3.4.1/emojionearea.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
 
 <style>
 /* ---------------- Chatables Styles ---------------- */
@@ -43,13 +45,42 @@ input:focus{border-color:#00eaff;box-shadow:0 0 20px #00eaffcc;animation:pulseBo
 button{cursor:pointer;font-weight:700;color:#000;background:linear-gradient(45deg,#00eaff,#00ffaa);padding:14px 20px;font-size:18px;margin-top:8px;border-radius:16px;text-shadow:0 0 9px #00ffec;box-shadow:0 0 45px #00ffaaaa;transition:.4s;animation:buttonGlow 3s infinite;}
 button:hover{transform:scale(1.15);box-shadow:0 0 90px #00fff7ee;}
 @keyframes buttonGlow{0%,100%{box-shadow:0 0 25px #00ffcc;}50%{box-shadow:0 0 60px #00ffff;}}
-#chatScreen { display:flex; flex-direction:column; padding:20px; height:100vh; background:rgba(7,10,18,.88); backdrop-filter:blur(28px); border-radius:18px; box-shadow:inset 0 0 130px #00ffffaa; }
+#chatScreen { 
+    display:flex; 
+    flex-direction:column; 
+    padding:20px; 
+    height:100vh; 
+    background:rgba(7,10,18,.88); 
+    backdrop-filter:blur(28px); 
+    border-radius:18px; 
+    box-shadow:inset 0 0 130px #00ffffaa; 
+    position: relative; /* For settings button positioning */
+}
 #messages { flex:1; overflow-y:auto; padding:14px; border-radius:16px; border:1px solid #1b1b2d; background: rgba(7,10,18,0.9); scroll-behavior:smooth; box-shadow:0 6px 40px #00eaffdd; }
-.chat-row { display:flex; margin:14px 0; animation:msgEnter .5s ease; }
+
+/* Modified chat-row to include profile pic */
+.chat-row { 
+    display: flex; 
+    align-items: flex-start; /* Align to the top of the bubble */
+    margin: 14px 0; 
+    animation: msgEnter .5s ease; 
+}
+.chat-row.you { justify-content: flex-end; } /* Align your messages to the right */
+.chat-row.friend { justify-content: flex-start; } /* Align friend messages to the left */
+
 @keyframes msgEnter{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-.chat-bubble { padding:16px 22px; max-width:65%; border-radius:20px; font-size:16px; transition:.3s; box-shadow:0 5px 20px #00ffff55; }
-.message-you { background:linear-gradient(135deg,#22ff9c,#00b36f); margin-left:auto; color:black; animation:glowBubble 2s infinite; }
-.message-friend { background:linear-gradient(135deg,#3f95ff,#1d63dd); margin-right:auto; color:white; animation:glowBubble 2s infinite; }
+.chat-bubble { 
+    padding:16px 22px; 
+    max-width:65%; 
+    border-radius:20px; 
+    font-size:16px; 
+    transition:.3s; 
+    box-shadow:0 5px 20px #00ffff55; 
+    display: flex;
+    flex-direction: column;
+}
+.message-you { background:linear-gradient(135deg,#22ff9c,#00b36f); color:black; animation:glowBubble 2s infinite; border-bottom-right-radius: 4px; /* Adjust for profile pic */ }
+.message-friend { background:linear-gradient(135deg,#3f95ff,#1d63dd); color:white; animation:glowBubble 2s infinite; border-bottom-left-radius: 4px; /* Adjust for profile pic */ }
 @keyframes glowBubble{0%,100%{box-shadow:0 0 15px #00ffcc;}50%{box-shadow:0 0 35px #00ffff;}}
 .timestamp { font-size:12px; opacity:0.7; margin-left:6px; color:black; text-shadow:none; }
 .input-area{display:flex;gap:12px;margin-top:18px;align-items:center;position:relative;}
@@ -59,6 +90,7 @@ button:hover{transform:scale(1.15);box-shadow:0 0 90px #00fff7ee;}
 #clearBtn{margin-top:12px;width:100%;padding:16px;background:#ff3366;color:white;border-radius:18px;transition:.35s;}
 #clearBtn:hover{transform:scale(1.1);box-shadow:0 0 55px #ff5580cc;}
 #onlineUsers{margin-top:12px;padding:12px;background:rgba(0,255,255,.15);border-radius:14px;font-size:15px;max-height:180px;overflow-y:auto;}
+/* Modified online-user to include profile pic */
 .online-user{display:flex;align-items:center;gap:12px;margin:6px 0;padding:8px 14px;border-radius:12px;opacity:0;animation:popOnline .5s forwards;}
 .online-user.self{background:#00ff9f55;font-weight:800;}
 .online-dot{width:12px;height:12px;border-radius:50%;background:#0f0;box-shadow:0 0 10px #0f0aa;animation:pulseDot 1.5s infinite;}
@@ -66,6 +98,159 @@ button:hover{transform:scale(1.15);box-shadow:0 0 90px #00fff7ee;}
 @keyframes pulseDot{0%,100%{transform:scale(0.85);}50%{transform:scale(1.3);}}
 .info-link { margin-top:10px; font-size:13px; color:#00eaff; cursor:pointer; text-decoration:underline; }
 .info-link:hover { color:#00ffaa; }
+
+/* New Profile Picture, Nametag, and Effects Styles */
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 10px; /* Space around profile pics */
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    flex-shrink: 0; /* Prevent shrinking in flex container */
+    box-shadow: 0 0 10px rgba(0,255,255,0.4);
+}
+.chat-row.friend .profile-pic { margin-right: 10px; margin-left: 0; }
+.chat-row.you .profile-pic { order: 2; margin-left: 10px; margin-right: 0; } /* Order for your profile pic */
+
+.online-user .profile-pic {
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    box-shadow: 0 0 8px rgba(0,255,255,0.3);
+}
+
+.nametag {
+    font-weight: bold;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Default nametag colors (can be overridden by user choice) */
+.nametag-default-you { color: #007bff; }
+.nametag-default-friend { color: #28a745; }
+
+/* Example Profile Effects */
+.profile-pic.effect-sparkle {
+    border-color: gold;
+    box-shadow: 0 0 15px gold, 0 0 25px rgba(255,215,0,0.6);
+    animation: sparkleEffect 1.5s infinite alternate;
+}
+@keyframes sparkleEffect {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; box-shadow: 0 0 20px gold, 0 0 35px rgba(255,215,0,0.8); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.profile-pic.effect-aura {
+    box-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff, 0 0 30px #00eaff;
+    animation: auraEffect 2s infinite ease-in-out;
+}
+@keyframes auraEffect {
+    0% { box-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff, 0 0 30px #00eaff; }
+    50% { box-shadow: 0 0 15px #00ffaa, 0 0 25px #00ffaa, 0 0 40px #00ffaa; }
+    100% { box-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff, 0 0 30px #00eaff; }
+}
+
+/* User options for Public Screen and Settings Screen */
+.profile-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 15px;
+    gap: 10px;
+}
+.profile-option-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+.profile-option-group label {
+    font-size: 14px;
+    color: #00eaff;
+    margin-right: 5px;
+}
+.profile-pic-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #00eaff;
+    margin-bottom: 10px;
+    box-shadow: 0 0 15px #00eaffcc;
+}
+.color-swatch {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease;
+}
+.color-swatch.selected {
+    border-color: #00eaff;
+    box-shadow: 0 0 10px #00eaff;
+}
+.effect-preview {
+    padding: 8px 12px;
+    border: 1px solid #00eaff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    font-size: 14px;
+}
+.effect-preview.selected {
+    background-color: #00eaff33;
+    border-color: #00ffaa;
+    box-shadow: 0 0 10px #00ffaa;
+}
+
+/* Settings button in chat screen */
+#settingsBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    font-size: 16px;
+    background: linear-gradient(45deg, #00eaff, #00ffaa);
+    color: black;
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 0 20px rgba(0,255,255,0.6);
+}
+#settingsBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0,255,255,0.8);
+}
+
+/* Settings Screen */
+#settingsScreen {
+    display: none; /* Hidden by default */
+    padding: 20px;
+    height: 100vh;
+    background:rgba(7,10,18,.88); 
+    backdrop-filter:blur(28px); 
+    border-radius:18px; 
+    box-shadow:inset 0 0 130px #00ffffaa;
+    overflow-y: auto; /* Allow scrolling if options are many */
+}
+#settingsScreen .title {
+    margin-bottom: 20px;
+}
+#settingsScreen .profile-options {
+    margin-top: 0; /* Adjust spacing */
+}
+#settingsScreen button {
+    margin-top: 15px;
+    width: 100%; /* Full width buttons for settings actions */
+    max-width: 300px;
+}
 
 /* ---------------- Custom Cursor Styles ---------------- */
 .cursor-target { padding: 14px 20px; user-select: none; cursor:pointer; border: 3px solid transparent; position: relative; transition: background 0.3s, border-color 0.3s; }
@@ -106,11 +291,34 @@ button:hover{transform:scale(1.15);box-shadow:0 0 90px #00fff7ee;}
 <div id="publicScreen" class="screen">
   <div class="title">CHATABLES</div>
   <input id="publicName" placeholder="Enter your name" class="cursor-target">
+  
+  <div class="profile-options">
+      <img id="publicProfilePicPreview" src="https://via.placeholder.com/60/00eaff/000000?text=P" alt="Profile" class="profile-pic-preview">
+      <div class="profile-option-group">
+          <label>Profile Picture URL:</label>
+          <input id="publicProfilePicUrl" placeholder="Image URL (optional)" value="https://via.placeholder.com/60/00eaff/000000?text=P" class="cursor-target" style="width:250px;">
+      </div>
+      <div class="profile-option-group">
+          <label>Nametag Color:</label>
+          <div class="color-swatch public-color-swatch selected" style="background-color:#00eaff;" data-color="#00eaff"></div>
+          <div class="color-swatch public-color-swatch" style="background-color:#00ffaa;" data-color="#00ffaa"></div>
+          <div class="color-swatch public-color-swatch" style="background-color:#ff00ea;" data-color="#ff00ea"></div>
+          <div class="color-swatch public-color-swatch" style="background-color:#fff;" data-color="#fff"></div>
+      </div>
+      <div class="profile-option-group">
+          <label>Profile Effect:</label>
+          <div class="effect-preview public-effect-preview selected" data-effect="none">None</div>
+          <div class="effect-preview public-effect-preview" data-effect="sparkle">Sparkle</div>
+          <div class="effect-preview public-effect-preview" data-effect="aura">Aura</div>
+      </div>
+  </div>
+
   <button id="loginPublicBtn" class="cursor-target">Enter Chat 🚀</button>
 </div>
 
 <div id="chatScreen">
   <div class="title">CHATABLES</div>
+  <button id="settingsBtn" class="cursor-target">Settings</button>
   <div id="messages"></div>
   <div class="input-area">
     <input id="msg" placeholder="Type a message..." class="cursor-target">
@@ -119,6 +327,34 @@ button:hover{transform:scale(1.15);box-shadow:0 0 90px #00fff7ee;}
   <button id="clearBtn" class="cursor-target">Clear Chat</button>
   <div id="onlineUsers"></div>
 </div>
+
+<!-- Settings Screen -->
+<div id="settingsScreen" class="screen">
+    <div class="title">SETTINGS</div>
+    <div class="profile-options">
+        <img id="settingsProfilePicPreview" src="https://via.placeholder.com/60/00eaff/000000?text=P" alt="Profile" class="profile-pic-preview">
+        <div class="profile-option-group">
+            <label>Profile Picture URL:</label>
+            <input id="settingsProfilePicUrl" placeholder="Image URL (optional)" class="cursor-target" style="width:250px;">
+        </div>
+        <div class="profile-option-group">
+            <label>Nametag Color:</label>
+            <div class="color-swatch settings-color-swatch selected" style="background-color:#00eaff;" data-color="#00eaff"></div>
+            <div class="color-swatch settings-color-swatch" style="background-color:#00ffaa;" data-color="#00ffaa"></div>
+            <div class="color-swatch settings-color-swatch" style="background-color:#ff00ea;" data-color="#ff00ea"></div>
+            <div class="color-swatch settings-color-swatch" style="background-color:#fff;" data-color="#fff"></div>
+        </div>
+        <div class="profile-option-group">
+            <label>Profile Effect:</label>
+            <div class="effect-preview settings-effect-preview selected" data-effect="none">None</div>
+            <div class="effect-preview settings-effect-preview" data-effect="sparkle">Sparkle</div>
+            <div class="effect-preview settings-effect-preview" data-effect="aura">Aura</div>
+        </div>
+    </div>
+    <button id="saveSettingsBtn" class="cursor-target">Save Settings</button>
+    <button id="cancelSettingsBtn" class="cursor-target" style="background:#888; color:white;">Back to Chat</button>
+</div>
+
 
 <!-- ---------------- Custom Cursor HTML ---------------- -->
 <div class="target-cursor-wrapper">
@@ -150,28 +386,112 @@ firebase.initializeApp({
 
 const db=firebase.database();
 let userId="", username="", chatType="", privateRoom="";
-const validUsers={"Fdr_Hid":"Nadheem2011","_Ash_":"Ash2011","NobodyCanBeatMe":"Junaid2011","Itsmethekingoftheworld":"Jay@2011"};
+// Enhanced validUsers to include profilePic, nametagColor, and effect
+const validUsers={
+    "Fdr_Hid": { password: "Nadheem2011", profilePic: "https://via.placeholder.com/60/FF5733/FFFFFF?text=FH", nametagColor: "#FF5733", effect: "sparkle" },
+    "_Ash_": { password: "Ash2011", profilePic: "https://via.placeholder.com/60/33FF57/FFFFFF?text=AS", nametagColor: "#33FF57", effect: "aura" },
+    "NobodyCanBeatMe": { password: "Junaid2011", profilePic: "https://via.placeholder.com/60/3357FF/FFFFFF?text=NB", nametagColor: "#3357FF", effect: "none" },
+    "Itsmethekingoftheworld": { password: "Jay@2011", profilePic: "https://via.placeholder.com/60/FF33DA/FFFFFF?text=IK", nametagColor: "#FF33DA", effect: "sparkle" }
+};
+
+// Default values for public chat
+let userProfilePic = "https://via.placeholder.com/60/00eaff/000000?text=P"; 
+let userNametagColor = "#00eaff"; 
+let userEffect = "none"; 
 
 const loginChoice=document.getElementById("loginChoice");
 const loginScreen=document.getElementById("loginScreen");
 const infoScreen=document.getElementById("infoScreen");
 const publicScreen=document.getElementById("publicScreen");
-const chat=document.getElementById("chatScreen");
+const chatScreen=document.getElementById("chatScreen"); // Renamed to avoid conflict
+const settingsScreen=document.getElementById("settingsScreen"); // New settings screen
 
 function showInfo(){ loginScreen.style.display="none"; infoScreen.style.display="flex"; }
 function backToLogin(){ infoScreen.style.display="none"; loginScreen.style.display="flex"; }
 
 document.getElementById("privateBtn").onclick=()=>{loginChoice.style.display="none"; loginScreen.style.display="flex";}
-document.getElementById("publicBtn").onclick=()=>{loginChoice.style.display="none"; publicScreen.style.display="flex";}
+document.getElementById("publicBtn").onclick=()=>{
+    loginChoice.style.display="none"; 
+    publicScreen.style.display="flex";
+    
+    // Load saved public chat data from localStorage
+    const savedName = localStorage.getItem('publicUsername');
+    const savedPic = localStorage.getItem('publicProfilePic');
+    const savedColor = localStorage.getItem('publicNametagColor');
+    const savedEffect = localStorage.getItem('publicEffect');
+
+    if (savedName) {
+        document.getElementById("publicName").value = savedName;
+        username = savedName; // Pre-set username
+    }
+    if (savedPic) {
+        userProfilePic = savedPic;
+    }
+    if (savedColor) {
+        userNametagColor = savedColor;
+    }
+    if (savedEffect) {
+        userEffect = savedEffect;
+    }
+
+    // Initialize public profile options with loaded or default values
+    updateProfileOptionsUI("public", userProfilePic, userNametagColor, userEffect);
+}
+
+// Function to update profile options UI for a given screen (public or settings)
+function updateProfileOptionsUI(screenPrefix, picUrl, nametagColor, effect) {
+    document.getElementById(`${screenPrefix}ProfilePicUrl`).value = picUrl;
+    document.getElementById(`${screenPrefix}ProfilePicPreview`).src = picUrl;
+    document.querySelectorAll(`.${screenPrefix}-color-swatch`).forEach(swatch => {
+        if (swatch.dataset.color === nametagColor) swatch.classList.add("selected");
+        else swatch.classList.remove("selected");
+    });
+    document.querySelectorAll(`.${screenPrefix}-effect-preview`).forEach(effectBtn => {
+        if (effectBtn.dataset.effect === effect) effectBtn.classList.add("selected");
+        else effectBtn.classList.remove("selected");
+    });
+}
+
+
+// Event listeners for public profile options
+document.getElementById("publicProfilePicUrl").addEventListener("input", function() {
+    const url = this.value.trim();
+    userProfilePic = url || "https://via.placeholder.com/60/00eaff/000000?text=P";
+    document.getElementById("publicProfilePicPreview").src = userProfilePic;
+});
+
+document.querySelectorAll(".public-color-swatch").forEach(swatch => {
+    swatch.addEventListener("click", function() {
+        document.querySelectorAll(".public-color-swatch").forEach(s => s.classList.remove("selected"));
+        this.classList.add("selected");
+        userNametagColor = this.dataset.color;
+    });
+});
+
+document.querySelectorAll(".public-effect-preview").forEach(effectBtn => {
+    effectBtn.addEventListener("click", function() {
+        document.querySelectorAll(".public-effect-preview").forEach(e => e.classList.remove("selected"));
+        this.classList.add("selected");
+        userEffect = this.dataset.effect;
+    });
+});
+
 document.getElementById("loginPrivateBtn").onclick=loginPrivate;
 document.getElementById("loginPublicBtn").onclick=loginPublic;
 
 function loginPrivate(){
   const u=document.getElementById("username").value.trim();
   const p=document.getElementById("password").value.trim();
-  if(validUsers[u] && validUsers[u]===p){
-    username=u; chatType="private"; userId=u+"-"+Math.random().toString(36).slice(2,7);
+  if(validUsers[u] && validUsers[u].password===p){
+    username=u; 
+    chatType="private"; 
+    userId=u+"-"+Math.random().toString(36).slice(2,7);
     privateRoom = "chatables-private";
+    // Set profile data from validUsers for private chat
+    userProfilePic = validUsers[u].profilePic || "https://via.placeholder.com/60/AAAAAA/FFFFFF?text=P";
+    userNametagColor = validUsers[u].nametagColor || "#00eaff";
+    userEffect = validUsers[u].effect || "none";
+
     loginScreen.style.display="none"; startChat();
   } else alert("Wrong username or password");
 }
@@ -179,7 +499,17 @@ function loginPrivate(){
 function loginPublic(){
   const u=document.getElementById("publicName").value.trim();
   if(!u) return alert("Enter name");
-  username=u; chatType="public"; userId=u+"-"+Math.random().toString(36).slice(2,7);
+  username=u; 
+  chatType="public"; 
+  userId=u+"-"+Math.random().toString(36).slice(2,7);
+  // Profile data already set by input fields and selections for public chat
+
+  // Save public user data to localStorage
+  localStorage.setItem('publicUsername', username);
+  localStorage.setItem('publicProfilePic', userProfilePic);
+  localStorage.setItem('publicNametagColor', userNametagColor);
+  localStorage.setItem('publicEffect', userEffect);
+
   publicScreen.style.display="none"; startChat();
 }
 
@@ -187,15 +517,25 @@ document.addEventListener("keydown", e=>{
   if(e.key==="Enter"){
     if(loginScreen.style.display==="flex") loginPrivate();
     if(publicScreen.style.display==="flex") loginPublic();
-    if(chat.style.display==="flex") sendMessage();
+    if(chatScreen.style.display==="flex") sendMessage(); // Check chatScreen
   }
 });
 
 function startChat(){
-  chat.style.display="flex";
+  chatScreen.style.display="flex";
+  // Hide settings button for private chat
+  document.getElementById("settingsBtn").style.display = (chatType === "public") ? "block" : "none";
+
   $("#msg").emojioneArea({pickerPosition:"top",events:{keyup:function(e){if(e.key==="Enter") sendMessage();}}});
   const onlineRef=db.ref("chatables-online/"+chatType+"/"+userId);
-  onlineRef.set({name:username}); onlineRef.onDisconnect().remove();
+  // Store profile data in online presence
+  onlineRef.set({
+      name:username, 
+      profilePic: userProfilePic, 
+      nametagColor: userNametagColor, 
+      effect: userEffect
+  }); 
+  onlineRef.onDisconnect().remove();
   listenMessages(); listenOnline();
 }
 
@@ -205,7 +545,16 @@ function sendMessage(){
   const text=msgBox.getText().trim();
   if(!text) return;
   const path = chatType==="private" ? privateRoom : "chatables-"+chatType;
-  db.ref(path).push({text,user:userId,name:username,time:Date.now()});
+  // Include profile data in message
+  db.ref(path).push({
+      text,
+      user:userId,
+      name:username,
+      profilePic: userProfilePic,
+      nametagColor: userNametagColor,
+      effect: userEffect,
+      time:Date.now()
+  });
   msgBox.setText("");
 }
 
@@ -218,7 +567,24 @@ function listenMessages(){
     let hours = date.getHours(); const minutes=String(date.getMinutes()).padStart(2,'0');
     const ampm=hours>=12?'PM':'AM'; hours=hours%12||12;
     const timeStr=`${hours}:${minutes} ${ampm}`;
-    $("#messages").append(`<div class="chat-row"><div class="chat-bubble ${me?"message-you":"message-friend"}"><b>${me?"You":d.name}</b> <span class="timestamp">${timeStr}</span><br>${d.text}</div></div>`);
+
+    // Get profile details, use defaults if not present
+    const senderProfilePic = d.profilePic || "https://via.placeholder.com/60/AAAAAA/FFFFFF?text=U";
+    const senderNametagColor = d.nametagColor || (me ? "#007bff" : "#28a745");
+    const senderEffect = d.effect || "none";
+
+    const profilePicHtml = `<img src="${senderProfilePic}" alt="Profile" class="profile-pic effect-${senderEffect}">`;
+    const nametagHtml = `<b class="nametag" style="color:${senderNametagColor};">${me ? "You" : d.name}</b>`;
+
+    $("#messages").append(`
+        <div class="chat-row ${me ? "you" : "friend"}">
+            ${me ? '' : profilePicHtml} <!-- Profile pic on left for friends -->
+            <div class="chat-bubble ${me?"message-you":"message-friend"}">
+                ${nametagHtml} <span class="timestamp">${timeStr}</span><br>${d.text}
+            </div>
+            ${me ? profilePicHtml : ''} <!-- Profile pic on right for you -->
+        </div>
+    `);
     document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight;
   });
 }
@@ -227,7 +593,18 @@ function listenOnline(){
   db.ref("chatables-online/"+chatType).on("value", snap=>{
     const val = snap.val()||{}; $("#onlineUsers").html("");
     Object.entries(val).forEach(([id,v])=>{
-      $("#onlineUsers").append(`<div class="online-user ${id===userId?"self":""}"><div class="online-dot"></div>${v.name}</div>`);
+      const isSelf = id===userId;
+      const onlineProfilePic = v.profilePic || "https://via.placeholder.com/30/AAAAAA/FFFFFF?text=U";
+      const onlineNametagColor = v.nametagColor || (isSelf ? "#007bff" : "#28a745");
+      const onlineEffect = v.effect || "none";
+
+      $("#onlineUsers").append(`
+        <div class="online-user ${isSelf?"self":""}">
+            <div class="online-dot"></div>
+            <img src="${onlineProfilePic}" alt="Profile" class="profile-pic effect-${onlineEffect}">
+            <span style="color:${onlineNametagColor}; font-weight:bold;">${v.name}</span>
+        </div>
+      `);
     });
   });
 }
@@ -238,6 +615,68 @@ document.getElementById("clearBtn").onclick=()=>{
     db.ref(path).remove(); $("#messages").html("");
   }
 }
+
+// ---------------- Settings Screen Logic ----------------
+document.getElementById("settingsBtn").onclick = () => {
+    chatScreen.style.display = "none";
+    settingsScreen.style.display = "flex";
+    // Populate settings screen with current user data
+    updateProfileOptionsUI("settings", userProfilePic, userNametagColor, userEffect);
+};
+
+// Event listeners for settings profile options (similar to public screen)
+document.getElementById("settingsProfilePicUrl").addEventListener("input", function() {
+    const url = this.value.trim();
+    document.getElementById("settingsProfilePicPreview").src = url || "https://via.placeholder.com/60/00eaff/000000?text=P";
+});
+
+document.querySelectorAll(".settings-color-swatch").forEach(swatch => {
+    swatch.addEventListener("click", function() {
+        document.querySelectorAll(".settings-color-swatch").forEach(s => s.classList.remove("selected"));
+        this.classList.add("selected");
+    });
+});
+
+document.querySelectorAll(".settings-effect-preview").forEach(effectBtn => {
+    effectBtn.addEventListener("click", function() {
+        document.querySelectorAll(".settings-effect-preview").forEach(e => e.classList.remove("selected"));
+        this.classList.add("selected");
+    });
+});
+
+document.getElementById("saveSettingsBtn").onclick = () => {
+    // Get new values from settings screen
+    const newProfilePic = document.getElementById("settingsProfilePicUrl").value.trim() || "https://via.placeholder.com/60/00eaff/000000?text=P";
+    const newNametagColor = document.querySelector(".settings-color-swatch.selected")?.dataset.color || "#00eaff";
+    const newEffect = document.querySelector(".settings-effect-preview.selected")?.dataset.effect || "none";
+
+    // Update global user variables
+    userProfilePic = newProfilePic;
+    userNametagColor = newNametagColor;
+    userEffect = newEffect;
+
+    // Update localStorage for public chat persistence
+    localStorage.setItem('publicProfilePic', userProfilePic);
+    localStorage.setItem('publicNametagColor', userNametagColor);
+    localStorage.setItem('publicEffect', userEffect);
+
+    // Update Firebase online presence immediately
+    const onlineRef = db.ref("chatables-online/"+chatType+"/"+userId);
+    onlineRef.update({
+        profilePic: userProfilePic,
+        nametagColor: userNametagColor,
+        effect: userEffect
+    });
+
+    // Go back to chat screen
+    settingsScreen.style.display = "none";
+    chatScreen.style.display = "flex";
+};
+
+document.getElementById("cancelSettingsBtn").onclick = () => {
+    settingsScreen.style.display = "none";
+    chatScreen.style.display = "flex";
+};
 
 // Background particles
 for(let i=0;i<100;i++){
